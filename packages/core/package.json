@@ -12,6 +12,11 @@
     "typecheck": "tsc --noEmit -p tsconfig.json"
   },
   "dependencies": {
+    "@mozilla/readability": "0.6.0",
+    "linkedom": "0.18.15",
     "zod": "4.6.7"
+  },
+  "devDependencies": {
+    "@lectern/fixtures": "workspace:*"
   }
 }
