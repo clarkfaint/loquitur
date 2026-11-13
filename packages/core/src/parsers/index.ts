@@ -8,5 +8,8 @@ export * from "./epub";
 
 export * from "./html";
 export * from "./html-map";
+export * from "./image";
+export * from "./ocr-tesseract";
 export * from "./pdf";
 export * from "./pdf-layout";
+export * from "./pdf-raster";

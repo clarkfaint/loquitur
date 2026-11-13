@@ -2,9 +2,10 @@
  * The PDF parser (F§5.4, PDF row): a PDF's text items become `RawBlock`s, and every word of every
  * block keeps a pointer back to the page it was drawn on.
  *
- * pdfjs is used for its text layer and nothing else — no page is rendered, no canvas is created, no
- * font is rasterized (U-010 owns rendering). The legacy build is imported from `node_modules` rather
- * than from a CDN, and its own Node path runs the worker in-process, so no worker thread is started.
+ * pdfjs is used for its text layer, and for F§5.5's fallback on a page whose text layer is empty: that
+ * page is rasterized by `pdf-raster.ts`, which owns the canvas. The legacy build is imported from
+ * `node_modules` rather than from a CDN, and its own Node path runs the worker in-process, so no
+ * worker thread is started.
  *
  * The geometry is `pdf-layout.ts`'s job; this module supplies the items, walks the pages, and settles
  * the two things that are properties of the document rather than of a page: the title, and the rank
@@ -23,9 +24,12 @@ import { z } from "zod";
 import type { HeadingLevel, RawBlock } from "../builder";
 import type { DocumentModel, PdfAnchor } from "../model";
 import { normalizeText } from "../normalize";
+import type { OcrEngine } from "../ocr";
+import { groupOcrLines, OCR_LANG } from "../ocr";
 import { tokenizeBlock } from "../tokenizer";
 import type { CharSource, PdfLine, PdfParagraph, PdfTextItem } from "./pdf-layout";
 import { detectHeadings, groupLines, groupParagraphs, medianFontSize } from "./pdf-layout";
+import { rasterizePdfPage } from "./pdf-raster";
 
 /** The MIME type F§5.1 records for a PDF in `source.mime`. */
 export const PDF_MIME = "application/pdf";
@@ -39,6 +43,12 @@ const DOCUMENT_OPTIONS = {
 
 /** The heading levels F§5.1 allows, largest type first. */
 const HEADING_LEVELS: readonly HeadingLevel[] = [1, 2, 3, 4, 5, 6];
+
+/** F§5.5's scanned-page threshold: a page whose text layer carries fewer characters than this is read by OCR. */
+const OCR_MIN_CHARACTERS = 20;
+
+/** F§5.5's rasterization resolution for a page that has no usable text layer. */
+const OCR_RASTER_DPI = 200;
 
 /**
  * The shape of a pdfjs text item as far as this parser reads it. A page's items are external input —
@@ -59,6 +69,12 @@ export interface ParsePdfOptions {
   uri?: string;
   /** A title to prefer over the one the document itself carries. */
   title?: string;
+  /**
+   * The OCR engine F§5.5's scanned-page fallback reads a page with. Without one, a page whose text
+   * layer carries fewer than 20 characters contributes no block at all — which is the whole of what
+   * a text-extraction-only hub can do with a scan.
+   */
+  ocr?: OcrEngine;
 }
 
 /**
@@ -289,6 +305,29 @@ interface PdfDocumentLike {
   getMetadata(): Promise<{ info: unknown }>;
 }
 
+/** The characters a page's text layer actually carries, the count F§5.5's fallback is measured against. */
+function extractedCharacters(items: readonly PdfTextItem[]): number {
+  return items.reduce((total, item) => total + item.str.length, 0);
+}
+
+/**
+ * F§5.5's scanned-page fallback: a page whose own text layer is all but empty (fewer than 20
+ * characters on it) is rasterized at 200 DPI and read by the OCR engine, and the lines that come
+ * back are the page's blocks.
+ *
+ * Those blocks are `paragraph`s carrying the page they came from and nothing else. A scan holds no
+ * type size to measure and no item to point a `PdfAnchor` at, so an OCR'd page yields no anchors at
+ * all (F§5.5). A page with a usable text layer is never rasterized, and a caller that supplied no
+ * engine gets no blocks here — the text layer is then the only thing the page contributes.
+ */
+async function ocrBlocks(bytes: Uint8Array, page: number, characters: number, ocr: OcrEngine | undefined): Promise<ParsedBlock[]> {
+  if (ocr === undefined || characters >= OCR_MIN_CHARACTERS) return [];
+  const png = await rasterizePdfPage(bytes, page, OCR_RASTER_DPI);
+  const recognized = await ocr.recognize(png, { lang: OCR_LANG });
+  // The type size is 0 because an OCR'd line has none; it is read only to rank headings, and none of these is one.
+  return groupOcrLines(recognized.lines).map((rawBlock) => ({ rawBlock: { ...rawBlock, page }, fontSize: 0, locations: [] }));
+}
+
 /**
  * Parse a PDF (F§5.4). Every page is read for its text items, each page's items are grouped into
  * lines, headlines and paragraphs with the page's own median type size, and the blocks come out in
@@ -317,6 +356,7 @@ export async function parsePdf(bytes: Uint8Array, options: ParsePdfOptions = {})
         pageHeight: toNumber(Array.isArray(pdfPage.view) ? pdfPage.view[3] : undefined, 0),
       };
       blocks.push(...blocksOfPage(items, geometry));
+      blocks.push(...(await ocrBlocks(bytes, page, extractedCharacters(items), options.ocr)));
       pdfPage.cleanup();
     }
 

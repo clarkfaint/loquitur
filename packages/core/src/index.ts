@@ -4,6 +4,7 @@ export * from "./hash";
 export * from "./ids";
 export * from "./model";
 export * from "./normalize";
+export * from "./ocr";
 export * from "./playable";
 export * from "./skip";
 export * from "./text";
