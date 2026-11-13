@@ -4,3 +4,4 @@
 
 | Unit | Status | Date | Commit | Note |
 | --- | --- | --- | --- | --- |
+| U-000 | DONE | 2026-11-13 | 810df0e | Preflight script, ledgers and probe files; phase-1 checks pass; no inspection targets present (advisory only) |
