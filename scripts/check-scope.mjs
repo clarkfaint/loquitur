@@ -5,7 +5,7 @@
 //
 // Every path this unit changed must be one the contract allows it to change.
 //
-//   Base      the most recent commit whose subject starts with "feat(U-" or "blocked(U-" and does
+//   Base      the most recent commit whose subject starts with "feat(U-", "blocked(U-", or "chore(spec)" and does
 //             not name the unit being checked; if there is none, the empty tree.
 //   Changed   files that differ from the base (staged or not), plus untracked, unignored files.
 //   Allowed   the unit's outputs and patch scope; pnpm-lock.yaml; docs/status.md;
@@ -20,7 +20,7 @@ import { basename, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { parseUnit, parseUnits, REPO_ROOT, readSpec, SPEC_PATH } from "./unit.mjs";
 
-const COMMIT_BOUNDARY = /^(?:feat|blocked)\(U-/;
+const COMMIT_BOUNDARY = /^(?:(?:feat|blocked)\(U-|chore\(spec\))/;
 const UNIT_ID = /^U-(\d+)(?:-P(\d+))?$/;
 const ALWAYS_ALLOWED = ["pnpm-lock.yaml", "docs/status.md"];
 const BARREL_PATTERNS = [/^packages\/[^/]+\/src\/index\.ts$/, /^packages\/[^/]+\/src\/[^/]+\/index\.ts$/];
