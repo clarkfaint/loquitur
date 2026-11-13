@@ -1,3 +1,4 @@
+export * from "./epub";
 /**
  * The Node-only parser entry (F§5.4). Parsers read files and third-party HTML tooling, so they live
  * behind `@lectern/core/parsers` and never behind `@lectern/core`: `scripts/check-isomorphic.mjs`
