@@ -1,3 +1,4 @@
+export * from "./dispatch";
 export * from "./docx";
 export * from "./epub";
 /**
