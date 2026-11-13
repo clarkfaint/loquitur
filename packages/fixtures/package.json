@@ -1,0 +1,14 @@
+{
+  "name": "@lectern/fixtures",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "generate": "node generate.mjs"
+  },
+  "dependencies": {
+    "@napi-rs/canvas": "1.1.1",
+    "fflate": "0.8.3",
+    "pdf-lib": "1.17.1"
+  }
+}
