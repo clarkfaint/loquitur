@@ -5,3 +5,4 @@
 | Unit | Status | Date | Commit | Note |
 | --- | --- | --- | --- | --- |
 | U-000 | DONE | 2026-11-13 | 810df0e | Preflight script, ledgers and probe files; phase-1 checks pass; no inspection targets present (advisory only) |
+| U-001 | BLOCKED | 2026-11-13 | ec1a29c | `node --test scripts/__tests__/` — Node 24.22.3 resolves the directory argument with its own glob and hands the directory to a child process as its entry module (MODULE_NOT_FOUND); needs the glob form or a listed tests-directory manifest |
