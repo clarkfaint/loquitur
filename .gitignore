@@ -1,0 +1,29 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+.output/
+.wxt/
+out/
+build/
+.turbo/
+test-results/
+playwright-report/
+
+# Runtime data (LECTERN_DATA_DIR default)
+data/
+
+# Local overrides and secrets
+*.local
+infra/.env
+
+# Generated native projects (expo prebuild output)
+apps/android/android/
+apps/android/.expo/
+
+# Operator-supplied inspection artifacts: everything under targets/ is ignored
+# except the operator instructions and Lectern's own probe files.
+targets/*
+!targets/README.md
+!targets/probe

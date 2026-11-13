@@ -1,0 +1,25 @@
+Lectern probe text for reference inspection
+
+This passage is the only text Lectern loads into the reference product during inspection. Every sentence is original to this project, and none of it comes from a book, an article, or a website. Read it aloud and watch how the sentence highlight and the word highlight behave as the voice moves.
+
+The first group exercises abbreviations that must not end a sentence. Dr. Smith went to Washington. He arrived at 3.15 p.m. on Jan. 5. A title, a decimal that is really a time, and an abbreviated month all sit here together.
+
+The second group is a legal citation, where the abbreviations are as ordinary as the words around them. In Roe v. Wade, 410 U.S. 113 (1973), the Court ruled. See id. at 115. Only the final period closes this one.
+
+Three short cases follow. Wait... what? Yes! She said, "Stop." Then she left. J. K. Rowling wrote it. An ellipsis, an exclamation mark, and a single initial each test a different boundary.
+
+The last case hides an abbreviation behind a capital letter. Open the app. Then read Art. 5 aloud. A full word ends a sentence; a dotted abbreviation never does.
+
+A few numbers are deliberately decimal: 0.42 seconds, 12.75 words, 3.15 minutes. A decimal point is not a terminator, and the voice should stay steady across it.
+
+A short list is included so that list handling can be observed as well.
+
+- The first item asks the reader to start at the very top of the page.
+- The second item asks the reader to hold a steady pace through the middle.
+- The third item asks the reader to stop cleanly at the final word.
+
+One paragraph exists to carry a sentence far longer than a comfortable breath, because a splitter that guesses wrong at a dotted word is heard as a stumble in the middle of a thought, and the only way to notice that stumble is to listen to a sentence that keeps going well past the point where most readers would have taken a breath and started a new one, which is exactly why this sentence is deliberately long and why it contains no interior period that could rescue a careless splitter from having to decide where the thought actually ends.
+
+Finally a quoted sentence stands alone, so that the highlight can be watched across the quotation marks and the closing punctuation. The margin note read, "Keep the volume low after ten in the evening."
+
+That is the whole passage: long enough to produce a few dozen sentences, short enough to read in about two minutes.

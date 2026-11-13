@@ -1,0 +1,38 @@
+{
+  "generatedAt": "2026-11-13T03:38:23.391Z",
+  "phase": 1,
+  "platform": "linux",
+  "arch": "x64",
+  "node": "24.22.3",
+  "ok": true,
+  "checks": [
+    {
+      "id": "node",
+      "phase": 1,
+      "label": "Node >= 24",
+      "ok": true,
+      "detail": "found 24.22.3 at /usr/local/bin/node"
+    },
+    {
+      "id": "pnpm",
+      "phase": 1,
+      "label": "pnpm",
+      "ok": true,
+      "detail": "found pnpm 12.18.0"
+    },
+    {
+      "id": "git",
+      "phase": 1,
+      "label": "git",
+      "ok": true,
+      "detail": "found git version 2.53.0"
+    },
+    {
+      "id": "system-font",
+      "phase": 1,
+      "label": "system font (fc-list)",
+      "ok": true,
+      "detail": "38 font entries, for example \"DejaVu Serif\""
+    }
+  ]
+}
