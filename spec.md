@@ -111,7 +111,7 @@ Pass: exit code 0 and `docs/preflight.json` exists.
 ```sh
 pnpm install \
   && pnpm -w run lint \
-  && node --test scripts/__tests__/ \
+  && node --test "scripts/__tests__/*.test.mjs" \
   && node scripts/unit.mjs U-001 | grep -q "Monorepo scaffold and guard scripts" \
   && node scripts/unit.mjs U-001 --json | node -e "let s='';process.stdin.on('data',d=>s+=d).on('end',()=>process.exit(JSON.parse(s).outputs.length===10?0:1))" \
   && ! node scripts/unit.mjs U-999 >/dev/null 2>&1 \
