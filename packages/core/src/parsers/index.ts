@@ -6,3 +6,5 @@
 
 export * from "./html";
 export * from "./html-map";
+export * from "./pdf";
+export * from "./pdf-layout";
