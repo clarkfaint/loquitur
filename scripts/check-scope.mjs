@@ -22,7 +22,7 @@ import { parseUnit, parseUnits, REPO_ROOT, readSpec, SPEC_PATH } from "./unit.mj
 
 const COMMIT_BOUNDARY = /^(?:(?:feat|blocked)\(U-|chore\(spec\))/;
 const UNIT_ID = /^U-(\d+)(?:-P(\d+))?$/;
-const ALWAYS_ALLOWED = ["pnpm-lock.yaml", "docs/status.md"];
+const ALWAYS_ALLOWED = ["pnpm-lock.yaml", "pnpm-workspace.yaml", "docs/status.md"];
 const BARREL_PATTERNS = [/^packages\/[^/]+\/src\/index\.ts$/, /^packages\/[^/]+\/src\/[^/]+\/index\.ts$/];
 const USAGE = "Usage: node scripts/check-scope.mjs U-0NN";
 
