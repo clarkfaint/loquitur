@@ -1,0 +1,61 @@
+# The Lectern stack (F§12): the hub, the engine it synthesizes with, and the two optional services the
+# profiles add. Nothing but the hub publishes a port — the engines are reachable on the compose network
+# alone, which is also where `KOKORO_URL` points.
+#
+# `infra/.env` (copied from `infra/.env.example`) carries F§7.1's token and any optional variable. Asking for
+# a profile needs one more variable, because the hub learns the engine's URL from the environment rather than
+# from the profile: `PIPER_URL=http://piper:5000 docker compose --profile piper up`.
+
+name: lectern
+
+services:
+  hub:
+    build:
+      context: ..
+      dockerfile: infra/Dockerfile
+    image: lectern-hub:local
+    env_file:
+      - .env
+    environment:
+      # F§7.1: an empty value counts as unset, so the hub has no Piper engine and no AI routes until the
+      # profile is asked for and its URL is set beside it.
+      KOKORO_URL: http://kokoro:8880
+      PIPER_URL: ${PIPER_URL:-}
+      LLM_BASE_URL: ${LLM_BASE_URL:-}
+      LLM_MODEL: ${LLM_MODEL:-}
+      LLM_API_KEY: ${LLM_API_KEY:-}
+    ports:
+      - "8787:8787"
+    volumes:
+      - lectern-data:/data
+    depends_on:
+      kokoro:
+        condition: service_healthy
+
+  kokoro:
+    # F§2.3's engine, pinned to the newest release whose voice list has the shape F§6 describes; see this
+    # unit's evidence file for the measurement that decided the tag.
+    image: ghcr.io/remsky/kokoro-fastapi-cpu:v0.3.0
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:8880/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 120s
+
+  piper:
+    profiles: ["piper"]
+    build:
+      context: ..
+      dockerfile: infra/Dockerfile
+      target: piper
+    image: lectern-piper:local
+
+  llm:
+    profiles: ["llm"]
+    image: ollama/ollama:0.13.0
+
+volumes:
+  # One named volume holds everything F§7.1's `LECTERN_DATA_DIR` writes: the TTS cache, the documents and the
+  # OCR language data. A backup is a copy of it while the hub is stopped.
+  lectern-data:

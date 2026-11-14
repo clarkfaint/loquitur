@@ -22,6 +22,7 @@
   },
   "devDependencies": {
     "@lectern/fixtures": "workspace:*",
+    "esbuild": "0.28.2",
     "tsx": "4.23.15"
   }
 }
