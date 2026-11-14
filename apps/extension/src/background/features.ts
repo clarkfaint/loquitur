@@ -7,5 +7,13 @@
  * its function here, and `background.ts` runs whatever the array holds.
  */
 
+import { installOffscreenBridge } from "./offscreen";
+import { installReadingSession } from "./session";
+
 /** Every feature the service worker runs at startup, in order. */
 export const features: (() => void)[] = [];
+
+// U-034's two. The settings channel goes first: the offscreen document opens its port on its own first line, and
+// a connection nothing is listening for is closed immediately. The reading session then watches the tab events
+// it stops on. Both are installers rather than registrations, so this array stays the whole list of features.
+features.push(installOffscreenBridge, installReadingSession);
