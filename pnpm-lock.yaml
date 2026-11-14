@@ -207,6 +207,25 @@ importers:
         specifier: 4.23.15
         version: 4.23.15
 
+  packages/api-client:
+    dependencies:
+      '@lectern/api-contract':
+        specifier: workspace:*
+        version: link:../api-contract
+      '@lectern/core':
+        specifier: workspace:*
+        version: link:../core
+      '@lectern/core-tts':
+        specifier: workspace:*
+        version: link:../core-tts
+      zod:
+        specifier: 4.6.7
+        version: 4.6.7
+    devDependencies:
+      '@lectern/server':
+        specifier: workspace:*
+        version: link:../../apps/server
+
   packages/api-contract:
     dependencies:
       '@lectern/core':

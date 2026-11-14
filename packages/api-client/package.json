@@ -1,0 +1,22 @@
+{
+  "name": "@lectern/api-client",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./testing": "./src/testing/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
+  "dependencies": {
+    "@lectern/api-contract": "workspace:*",
+    "@lectern/core": "workspace:*",
+    "@lectern/core-tts": "workspace:*",
+    "zod": "4.6.7"
+  },
+  "devDependencies": {
+    "@lectern/server": "workspace:*"
+  }
+}
