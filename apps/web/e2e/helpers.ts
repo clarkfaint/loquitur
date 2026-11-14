@@ -1,0 +1,41 @@
+/**
+ * The browser tests' shared steps (F§10.1).
+ *
+ * `connect` is the way into the app: there is no other. The hub's address is typed into the settings screen
+ * exactly as an operator would type it, and the connected state is waited for rather than assumed, so a run
+ * that cannot reach the test hub fails here instead of somewhere later and less clearly.
+ */
+
+import { readFile } from "node:fs/promises";
+import { fileURLToPath } from "node:url";
+import { expect, type Page } from "@playwright/test";
+
+/** What the run's `global-setup.ts` wrote: the hub the tests talk to. */
+export interface TestHub {
+  baseUrl: string;
+  token: string;
+}
+
+/** Where the hub's address and token are written. */
+const HUB_FILE = fileURLToPath(new URL("./.hub.local", import.meta.url));
+
+/** The hub this run started, as `global-setup.ts` left it. */
+export async function testHub(): Promise<TestHub> {
+  return JSON.parse(await readFile(HUB_FILE, "utf8")) as TestHub;
+}
+
+/** The status paragraph's states, as the settings screen writes them. */
+const STATUS = (kind: "idle" | "testing" | "connected" | "error") => `[role="status"][data-status="${kind}"]`;
+
+/**
+ * `connect(page)` — open the settings screen, save the run's hub and token, and wait for the connected state.
+ * A later unit's `importText(page, title, text)` starts from here.
+ */
+export async function connect(page: Page, overrides: { hubUrl?: string; token?: string } = {}): Promise<void> {
+  const hub = await testHub();
+  await page.goto("/#/settings");
+  await page.getByLabel("Hub URL").fill(overrides.hubUrl ?? hub.baseUrl);
+  await page.getByLabel("Token").fill(overrides.token ?? hub.token);
+  await page.getByRole("button", { name: "Save" }).click();
+  await expect(page.locator(STATUS("connected"))).toBeVisible();
+}

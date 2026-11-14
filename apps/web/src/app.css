@@ -1,0 +1,155 @@
+/*
+ * The shell's layout (F§10.1). Every colour, space and radius below is one of the tokens
+ * `@lectern/ui-web/styles.css` declares, so the shell follows the light/dark theme and the reader's pinned
+ * theme (`data-lectern-theme` on the root element) without a rule of its own. No web font is fetched.
+ */
+
+@import "@lectern/ui-web/styles.css";
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--lectern-paper);
+  color: var(--lectern-ink);
+  font-family: var(--lectern-font);
+}
+
+.lectern-shell {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.lectern-shell__bar {
+  align-items: center;
+  background: var(--lectern-surface);
+  border-block-end: 1px solid var(--lectern-line);
+  display: flex;
+  gap: var(--lectern-space-5);
+  padding: var(--lectern-space-3) var(--lectern-space-5);
+}
+
+.lectern-shell__wordmark {
+  font-size: 1.125rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  margin: 0;
+}
+
+.lectern-shell__nav {
+  display: flex;
+  gap: var(--lectern-space-4);
+}
+
+.lectern-shell__link {
+  border-radius: var(--lectern-radius-1);
+  color: var(--lectern-ink-muted);
+  font-size: 0.9375rem;
+  padding: var(--lectern-space-1) var(--lectern-space-2);
+  text-decoration: none;
+}
+
+.lectern-shell__link:hover {
+  color: var(--lectern-ink);
+}
+
+.lectern-shell__link[aria-current="page"] {
+  background: var(--lectern-accent-soft);
+  color: var(--lectern-ink);
+}
+
+.lectern-shell__content {
+  margin: 0 auto;
+  max-width: 52rem;
+  padding: var(--lectern-space-5);
+  width: 100%;
+}
+
+.lectern-shell__empty {
+  color: var(--lectern-ink-muted);
+}
+
+.lectern-settings {
+  display: flex;
+  flex-direction: column;
+  gap: var(--lectern-space-5);
+}
+
+.lectern-settings__section {
+  background: var(--lectern-surface);
+  border: 1px solid var(--lectern-line);
+  border-radius: var(--lectern-radius-3);
+  padding: var(--lectern-space-4);
+}
+
+.lectern-settings__section h2 {
+  font-size: 1rem;
+  margin: 0 0 var(--lectern-space-3);
+}
+
+.lectern-settings__field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--lectern-space-1);
+  margin-block-end: var(--lectern-space-3);
+}
+
+.lectern-settings__field label {
+  color: var(--lectern-ink-muted);
+  font-size: 0.875rem;
+}
+
+.lectern-settings__field input[type="text"],
+.lectern-settings__field input[type="url"],
+.lectern-settings__field input[type="password"],
+.lectern-settings__field input[type="number"],
+.lectern-settings__field select {
+  background: var(--lectern-paper);
+  border: 1px solid var(--lectern-line);
+  border-radius: var(--lectern-radius-2);
+  color: var(--lectern-ink);
+  font: inherit;
+  padding: var(--lectern-space-2);
+}
+
+.lectern-settings__check {
+  align-items: center;
+  display: flex;
+  gap: var(--lectern-space-2);
+  margin-block-end: var(--lectern-space-2);
+}
+
+.lectern-settings__actions {
+  display: flex;
+  gap: var(--lectern-space-2);
+}
+
+.lectern-settings__actions button {
+  background: var(--lectern-accent);
+  border: 1px solid var(--lectern-accent);
+  border-radius: var(--lectern-radius-2);
+  color: var(--lectern-accent-ink);
+  cursor: pointer;
+  font: inherit;
+  padding: var(--lectern-space-2) var(--lectern-space-4);
+}
+
+.lectern-settings__actions button[type="button"] {
+  background: transparent;
+  color: var(--lectern-ink);
+}
+
+.lectern-settings__status {
+  margin: var(--lectern-space-3) 0 0;
+}
+
+.lectern-settings__status[data-status="error"] {
+  color: var(--lectern-danger);
+}
+
+.lectern-settings__status[data-status="connected"] {
+  color: var(--lectern-accent);
+}
