@@ -8,6 +8,7 @@
  */
 
 import { installOffscreenBridge } from "./offscreen";
+import { installReadActiveTab } from "./read-active-tab";
 import { installReadingSession } from "./session";
 
 /** Every feature the service worker runs at startup, in order. */
@@ -17,3 +18,7 @@ export const features: (() => void)[] = [];
 // a connection nothing is listening for is closed immediately. The reading session then watches the tab events
 // it stops on. Both are installers rather than registrations, so this array stays the whole list of features.
 features.push(installOffscreenBridge, installReadingSession);
+
+// U-035's. It registers `ext/read-active-tab` and binds the `read-page` shortcut to the same request, so a
+// reading starts from the popup's button or from the keyboard and arrives in the content script the same way.
+features.push(installReadActiveTab);
