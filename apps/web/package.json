@@ -16,6 +16,7 @@
     "@lectern/core": "workspace:*",
     "@lectern/core-tts": "workspace:*",
     "@lectern/ui-web": "workspace:*",
+    "pdfjs-dist": "6.5.438",
     "react": "19.3.1",
     "react-dom": "19.3.1",
     "zustand": "5.1.0"
