@@ -9,6 +9,7 @@
 
 export * from "./chunk-id";
 export * from "./engine";
+export * from "./kokoro-engine";
 export * from "./mock-engine";
 export * from "./mp3";
 export * from "./registry";
