@@ -12,6 +12,7 @@ export * from "./engine";
 export * from "./kokoro-engine";
 export * from "./mock-engine";
 export * from "./mp3";
+export * from "./piper-engine";
 export * from "./registry";
 export * from "./synthesize-chunk";
 export * from "./wav";
