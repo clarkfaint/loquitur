@@ -9,6 +9,8 @@
 import type { ComponentType } from "react";
 import { ImportPage } from "./import/ImportPage";
 import { LibraryPage } from "./library/LibraryPage";
+import { MiniPage } from "./mini/MiniPage";
+import { ReaderPage } from "./reader/ReaderPage";
 import { SettingsPage } from "./settings/SettingsPage";
 
 /** One registered route: the pattern the router matches, and the component it renders. A route takes no
@@ -23,4 +25,6 @@ export const routes: AppRoute[] = [
   { pattern: "/settings", component: SettingsPage },
   { pattern: "/library", component: LibraryPage },
   { pattern: "/import", component: ImportPage },
+  { pattern: "/read/:docId", component: ReaderPage },
+  { pattern: "/mini", component: MiniPage },
 ];
