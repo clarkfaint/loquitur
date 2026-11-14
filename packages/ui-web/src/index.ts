@@ -18,3 +18,7 @@ export * from "./format";
 export * from "./highlight/highlight-registry";
 export * from "./highlight/locate";
 export * from "./scroll/auto-scroll";
+export * from "./stores/device-id";
+export * from "./stores/idb-blob-cache";
+export * from "./stores/idb-library-store";
+export * from "./stores/idb-schema";
