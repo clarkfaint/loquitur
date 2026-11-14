@@ -4,3 +4,7 @@ packages:
 
 minimumReleaseAgeExclude:
   - "@napi-rs/canvas*"
+
+hoistPattern:
+  - "*"
+  - "!@types/node"
