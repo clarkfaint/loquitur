@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Lectern</title>
+    <style>
+      :root {
+        color-scheme: light dark;
+        --lectern-ink: #1b1b1f;
+        --lectern-paper: #fbfbfd;
+        --lectern-accent: #1d3557;
+        --lectern-muted: #5c6270;
+        --lectern-line: #d6d8e0;
+      }
+
+      body {
+        width: 22rem;
+        margin: 0;
+        padding: 0.9rem 1rem 1.1rem;
+        background: var(--lectern-paper);
+        color: var(--lectern-ink);
+        font: 13px/1.45 system-ui, sans-serif;
+      }
+
+      h1 {
+        margin: 0 0 0.6rem;
+        font-size: 1rem;
+        letter-spacing: 0.01em;
+      }
+
+      form {
+        display: grid;
+        gap: 0.5rem;
+      }
+
+      label {
+        display: grid;
+        gap: 0.2rem;
+        color: var(--lectern-muted);
+        font-size: 12px;
+      }
+
+      input[type="text"],
+      input[type="password"],
+      select {
+        padding: 0.3rem 0.4rem;
+        border: 1px solid var(--lectern-line);
+        border-radius: 0.3rem;
+        background: canvas;
+        color: inherit;
+        font: inherit;
+      }
+
+      .row {
+        display: flex;
+        align-items: center;
+        gap: 0.45rem;
+      }
+
+      .row label {
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+        color: inherit;
+        font-size: 13px;
+      }
+
+      button {
+        padding: 0.35rem 0.6rem;
+        border: 1px solid var(--lectern-line);
+        border-radius: 0.3rem;
+        background: canvas;
+        color: inherit;
+        font: inherit;
+        cursor: pointer;
+      }
+
+      button.primary {
+        border-color: var(--lectern-accent);
+        background: var(--lectern-accent);
+        color: #fbfbfd;
+      }
+
+      button[disabled] {
+        opacity: 0.55;
+        cursor: default;
+      }
+
+      p.status {
+        margin: 0.7rem 0 0;
+        padding-top: 0.55rem;
+        border-top: 1px solid var(--lectern-line);
+        color: var(--lectern-muted);
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Lectern</h1>
+    <div id="root"></div>
+    <script type="module" src="./main.tsx"></script>
+  </body>
+</html>
