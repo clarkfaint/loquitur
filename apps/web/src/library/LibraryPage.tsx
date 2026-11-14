@@ -31,6 +31,7 @@ import {
 } from "@lectern/core";
 import { type ReactElement, useEffect, useState } from "react";
 import { anchorsKey, originalKey } from "../import/import-service";
+import { OfflineButton } from "../offline/OfflineButton";
 import { getStorage, type Storage } from "../services";
 
 /** The orders the list offers, and the guard that keeps a `<select>` from inventing a fourth. */
@@ -472,6 +473,7 @@ export function LibraryPage(): ReactElement {
                         </option>
                       ))}
                     </select>
+                    <OfflineButton docId={document.docId} title={document.title} />
                     {confirmingDocument === document.docId ? (
                       <>
                         <button type="button" aria-label={`Confirm delete ${document.title}`} onClick={() => void removeDocument(document)}>

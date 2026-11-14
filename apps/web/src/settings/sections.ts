@@ -7,6 +7,7 @@
  */
 
 import type { ComponentType } from "react";
+import { OfflineSection } from "../offline/OfflineSection";
 
 /** One registered section: an id for its key and DOM anchor, a title, and the component to render. */
 export interface SettingsSection {
@@ -16,4 +17,4 @@ export interface SettingsSection {
 }
 
 /** Every registered section, in the order the settings page lists them. */
-export const sections: SettingsSection[] = [];
+export const sections: SettingsSection[] = [{ id: "offline", title: "Offline", component: OfflineSection }];
