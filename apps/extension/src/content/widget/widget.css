@@ -1,0 +1,174 @@
+/*
+ * The floating widget's own look (F§10.2), inside the shadow root it shares with `@lectern/ui-web/styles.css`.
+ *
+ * Two things here are not ordinary stylesheet work. The design tokens are declared on the *host* rather than
+ * on `:root`, because a `:root` rule matches nothing inside a shadow tree and the page the widget sits on has
+ * no Lectern stylesheet at all — so the widget carries U-023's palette and spacing with it, under the same
+ * names, and every rule below names a token rather than a raw colour. And the root element resets inheritance
+ * (`all: initial`), which is what stops a page's `font-size`, `line-height`, `color` or `text-align` from
+ * reaching the widget through the host: the widget is themed by these tokens and by nothing else. `all` does
+ * not reset custom properties, so the tokens above still resolve below.
+ *
+ * The palette is U-023's, value for value; the widget is a second place those tokens are needed, not a second
+ * set of them.
+ */
+
+:host {
+  --lectern-ink: #1b1d21;
+  --lectern-ink-muted: #5c6070;
+  --lectern-paper: #fbf9f5;
+  --lectern-surface: #ffffff;
+  --lectern-line: #e3dfd6;
+  --lectern-accent: #2f6f6a;
+  --lectern-accent-ink: #ffffff;
+  --lectern-accent-soft: #d7ebe7;
+  --lectern-sentence: #e6f0ee;
+  --lectern-word: #a9d3ce;
+  --lectern-danger: #9c3527;
+
+  --lectern-space-1: 0.25rem;
+  --lectern-space-2: 0.5rem;
+  --lectern-space-3: 0.75rem;
+  --lectern-space-4: 1rem;
+  --lectern-space-5: 1.5rem;
+
+  --lectern-radius-1: 0.25rem;
+  --lectern-radius-2: 0.5rem;
+  --lectern-radius-3: 0.875rem;
+
+  --lectern-font: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --lectern-font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+
+  --lectern-control-size: 2.25rem;
+  --lectern-icon-size: 1.25rem;
+  --lectern-progress-height: 0.25rem;
+}
+
+@media (prefers-color-scheme: dark) {
+  :host {
+    --lectern-ink: #ecedf1;
+    --lectern-ink-muted: #a3a7b4;
+    --lectern-paper: #15171b;
+    --lectern-surface: #1d2026;
+    --lectern-line: #2e323a;
+    --lectern-accent: #6fc0b6;
+    --lectern-accent-ink: #10201e;
+    --lectern-accent-soft: #244440;
+    --lectern-sentence: #23313a;
+    --lectern-word: #3d5f5a;
+    --lectern-danger: #e2917f;
+  }
+}
+
+/* The reset ------------------------------------------------------------------------------------- */
+
+.lectern-widget-root {
+  all: initial;
+  display: block;
+}
+
+/* The widget ------------------------------------------------------------------------------------ */
+
+.lectern-widget {
+  align-items: center;
+  background: var(--lectern-surface);
+  border: 1px solid var(--lectern-line);
+  border-radius: var(--lectern-radius-3);
+  box-shadow: 0 0.375rem 1.25rem rgb(0 0 0 / 18%);
+  box-sizing: border-box;
+  color: var(--lectern-ink);
+  display: flex;
+  font-family: var(--lectern-font);
+  font-size: 0.875rem;
+  gap: var(--lectern-space-1);
+  padding: var(--lectern-space-1);
+}
+
+.lectern-widget--pill {
+  min-block-size: 2.5rem;
+  min-inline-size: 6rem;
+}
+
+.lectern-widget--bar {
+  align-items: stretch;
+  flex-direction: column;
+  gap: var(--lectern-space-2);
+  max-inline-size: calc(100vw - 2rem);
+  padding: var(--lectern-space-2);
+  inline-size: 26rem;
+}
+
+/* The bar's own copy of the player bar is a block inside the widget, not a strip pinned to a page edge. */
+.lectern-widget--bar .lectern-player {
+  border: 0;
+  border-radius: var(--lectern-radius-2);
+  inset: auto;
+  position: static;
+}
+
+.lectern-widget__actions {
+  align-items: center;
+  display: flex;
+  gap: var(--lectern-space-2);
+}
+
+.lectern-widget__actions .lectern-speed {
+  flex: 1;
+}
+
+.lectern-widget__control,
+.lectern-widget__grip,
+.lectern-widget__action {
+  align-items: center;
+  background: transparent;
+  border: 0;
+  border-radius: var(--lectern-radius-2);
+  color: var(--lectern-ink);
+  cursor: pointer;
+  display: inline-flex;
+  font: inherit;
+  justify-content: center;
+  min-block-size: var(--lectern-control-size);
+  min-inline-size: var(--lectern-control-size);
+  padding: var(--lectern-space-1);
+}
+
+.lectern-widget__control--primary {
+  background: var(--lectern-accent);
+  color: var(--lectern-accent-ink);
+}
+
+.lectern-widget__action {
+  border: 1px solid var(--lectern-line);
+  font-size: 0.8125rem;
+  inline-size: auto;
+  padding-inline: var(--lectern-space-3);
+}
+
+.lectern-widget__action--icon {
+  padding-inline: var(--lectern-space-1);
+}
+
+.lectern-widget__grip {
+  color: var(--lectern-ink-muted);
+  cursor: grab;
+  touch-action: none;
+}
+
+.lectern-widget__grip:active {
+  cursor: grabbing;
+}
+
+.lectern-widget__control:hover,
+.lectern-widget__grip:hover,
+.lectern-widget__action:hover {
+  background: var(--lectern-accent-soft);
+  color: var(--lectern-ink);
+}
+
+.lectern-widget__control:focus-visible,
+.lectern-widget__grip:focus-visible,
+.lectern-widget__action:focus-visible {
+  outline: 2px solid var(--lectern-accent);
+  outline-offset: 2px;
+}
