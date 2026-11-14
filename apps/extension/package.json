@@ -16,6 +16,7 @@
     "@lectern/core": "workspace:*",
     "@lectern/core-tts": "workspace:*",
     "@lectern/ui-web": "workspace:*",
+    "@mozilla/readability": "0.6.0",
     "@wxt-dev/module-react": "1.2.2",
     "react": "19.3.1",
     "react-dom": "19.3.1",
