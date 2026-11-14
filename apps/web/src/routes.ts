@@ -7,6 +7,8 @@
  */
 
 import type { ComponentType } from "react";
+import { ImportPage } from "./import/ImportPage";
+import { LibraryPage } from "./library/LibraryPage";
 import { SettingsPage } from "./settings/SettingsPage";
 
 /** One registered route: the pattern the router matches, and the component it renders. A route takes no
@@ -17,4 +19,8 @@ export interface AppRoute {
 }
 
 /** Every registered route, in the order the shell's navigation lists them. */
-export const routes: AppRoute[] = [{ pattern: "/settings", component: SettingsPage }];
+export const routes: AppRoute[] = [
+  { pattern: "/settings", component: SettingsPage },
+  { pattern: "/library", component: LibraryPage },
+  { pattern: "/import", component: ImportPage },
+];

@@ -4,6 +4,9 @@
  * `connect` is the way into the app: there is no other. The hub's address is typed into the settings screen
  * exactly as an operator would type it, and the connected state is waited for rather than assumed, so a run
  * that cannot reach the test hub fails here instead of somewhere later and less clearly.
+ *
+ * `importText` (this unit) is the way into a library: text a reader pastes is read by the hub exactly as a
+ * file would be, so a fixture that needs a document in the library needs no fixture file.
  */
 
 import { readFile } from "node:fs/promises";
@@ -38,4 +41,17 @@ export async function connect(page: Page, overrides: { hubUrl?: string; token?: 
   await page.getByLabel("Token").fill(overrides.token ?? hub.token);
   await page.getByRole("button", { name: "Save" }).click();
   await expect(page.locator(STATUS("connected"))).toBeVisible();
+}
+
+/**
+ * `importText(page, title, text)` — paste a document into the library. The screen starts a fresh list of
+ * imports on every visit, so the row that has to be `done` is the one this call just added and not one an
+ * earlier call left behind.
+ */
+export async function importText(page: Page, title: string, text: string): Promise<void> {
+  await page.goto("/#/import");
+  await page.getByLabel("Title", { exact: true }).fill(title);
+  await page.getByLabel("Text", { exact: true }).fill(text);
+  await page.getByRole("button", { name: "Import text" }).click();
+  await expect(page.locator("[data-import-item]").last()).toHaveAttribute("data-status", "done");
 }

@@ -2,6 +2,7 @@ export * from "./abbreviations";
 export * from "./builder";
 export * from "./hash";
 export * from "./ids";
+export * from "./library-model";
 export * from "./model";
 export * from "./normalize";
 export * from "./ocr";
