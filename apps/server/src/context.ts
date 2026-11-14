@@ -4,6 +4,8 @@
  * configuration and, in a test, from that configuration plus the pieces the test wants to observe.
  */
 
+import type { OcrEngine } from "@lectern/core";
+import { createTesseractOcrEngine } from "@lectern/core/parsers";
 import {
   createEngineRegistry,
   createKokoroEngine,
@@ -33,10 +35,17 @@ export interface HubEngines extends EngineRegistry {
   targetFor(voiceId: string): Promise<VoiceTarget>;
 }
 
-/** What a caller may replace when it builds the hub: the engines to observe, and the cache to inspect. */
+/** The OCR engine a parse may use (F§5.5), as the hub holds it: asked for when one is needed. */
+export type OcrProvider = () => OcrEngine;
+
+/**
+ * What a caller may replace when it builds the hub: the engines to observe, the cache to inspect, and
+ * the OCR engine a parse reads an image with.
+ */
 export interface HubOverrides {
   engines?: HubEngines;
   ttsCache?: HubTtsCache;
+  ocr?: OcrProvider;
 }
 
 /** Everything a route module is given (F§7.1–F§7.3). */
@@ -44,6 +53,24 @@ export interface HubContext {
   config: Config;
   engines: HubEngines;
   ttsCache: HubTtsCache;
+  /** The engine a parse reads an image or a scanned page with, built on the first parse that needs one. */
+  ocr: OcrProvider;
+}
+
+/**
+ * The hub's OCR engine, built the first time a route asks for one (F§5.5).
+ *
+ * tesseract.js loads its language data and starts a worker on the first page it reads, so a hub that
+ * never parses an image pays for neither; the engine object itself is created once and reused, which
+ * is why the accessor holds it rather than rebuilding it per call. Its language data is cached under
+ * the data directory F§7.1 configures, where F§5.5 puts it.
+ */
+function lazyOcrEngine(dataDir: string): OcrProvider {
+  let engine: OcrEngine | null = null;
+  return () => {
+    engine ??= createTesseractOcrEngine({ cacheDir: dataDir });
+    return engine;
+  };
 }
 
 /** The engines F§7.1 enables, in the order its table lists them: only the ones the operator configured. */
@@ -95,5 +122,5 @@ export function createHubEngines(engines: readonly TtsEngine[]): HubEngines {
 export async function createHubContext(config: Config, overrides: HubOverrides = {}): Promise<HubContext> {
   const engines = overrides.engines ?? createHubEngines(enabledEngines(config));
   const ttsCache = overrides.ttsCache ?? createTtsCache(config.dataDir);
-  return { config, engines, ttsCache };
+  return { config, engines, ttsCache, ocr: overrides.ocr ?? lazyOcrEngine(config.dataDir) };
 }

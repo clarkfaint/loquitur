@@ -13,6 +13,7 @@ import type { Config } from "./config";
 import { createHubContext, type HubOverrides } from "./context";
 import { hubErrorHandler, hubNotFoundHandler } from "./errors";
 import { routes } from "./routes/index";
+import { maxUploadBytes } from "./routes/parse";
 
 /** The headers a browser client sends (F§7.2), and the response headers it has to be able to read. */
 const ALLOWED_HEADERS = ["authorization", "content-type", "range", "x-lectern-filename"];
@@ -35,6 +36,16 @@ export interface BuildAppOptions extends HubOverrides {
 export async function buildApp(config: Config, overrides: BuildAppOptions = {}): Promise<FastifyInstance> {
   const context = await createHubContext(config, overrides);
   const app = Fastify({ logger: overrides.logger ?? false });
+
+  // F§7.2's raw-body form of `POST /v1/parse`: every content type but JSON arrives as the bytes the
+  // client sent, and those bytes are the document. `application/json` keeps Fastify's own parser,
+  // which is what tells the two forms of that route apart; `text/plain` is named beside the catch-all
+  // because Fastify's plain-text parser would otherwise answer a text upload with a string rather
+  // than its bytes. The limit is F§7.1's `LECTERN_MAX_UPLOAD_MB`, so an upload past it is refused
+  // before a route sees it.
+  app.addContentTypeParser(["text/plain", "*"], { parseAs: "buffer", bodyLimit: maxUploadBytes(config) }, (_request, body, done) => {
+    done(null, body);
+  });
 
   await app.register(cors, {
     origin: true,
