@@ -7,6 +7,7 @@
  * stylesheet, exported as `@lectern/ui-web/styles.css`.
  */
 
+export * from "./audio/html-audio-queue-sink";
 export * from "./components/icons";
 export * from "./components/PlayerBar";
 export * from "./components/SleepTimerMenu";
