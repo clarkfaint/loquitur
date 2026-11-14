@@ -1,0 +1,17 @@
+{
+  "name": "@lectern/api-contract",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
+  "dependencies": {
+    "@lectern/core": "workspace:*",
+    "@lectern/core-tts": "workspace:*",
+    "zod": "4.6.7"
+  }
+}

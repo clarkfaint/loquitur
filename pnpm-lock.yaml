@@ -179,6 +179,18 @@ importers:
         specifier: 5.1.0
         version: 5.1.0(vite@8.3.8)
 
+  packages/api-contract:
+    dependencies:
+      '@lectern/core':
+        specifier: workspace:*
+        version: link:../core
+      '@lectern/core-tts':
+        specifier: workspace:*
+        version: link:../core-tts
+      zod:
+        specifier: 4.6.7
+        version: 4.6.7
+
   packages/core:
     dependencies:
       '@mozilla/readability':
