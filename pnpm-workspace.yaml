@@ -8,3 +8,7 @@ minimumReleaseAgeExclude:
 hoistPattern:
   - "*"
   - "!@types/node"
+
+allowBuilds:
+  esbuild: set this to true or false
+  tesseract.js: set this to true or false
