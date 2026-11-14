@@ -1,0 +1,329 @@
+/*
+ * Lectern's design tokens and player-bar styles (F§10.1).
+ *
+ * The palette, the spacing scale and the radii are Lectern's own, declared once as custom properties
+ * on :root and swapped as a group for the dark theme — so a rule below names a token and never a raw
+ * colour. Type is set in each platform's own system stack: no web font is fetched and none is bundled.
+ *
+ * Theme selection: the operating system's preference is followed by default, and the reader can pin
+ * one with `data-lectern-theme="light"` or `data-lectern-theme="dark"` on the root element.
+ */
+
+:root {
+  color-scheme: light dark;
+
+  --lectern-ink: #1b1d21;
+  --lectern-ink-muted: #5c6070;
+  --lectern-paper: #fbf9f5;
+  --lectern-surface: #ffffff;
+  --lectern-line: #e3dfd6;
+  --lectern-accent: #2f6f6a;
+  --lectern-accent-ink: #ffffff;
+  --lectern-accent-soft: #d7ebe7;
+  --lectern-sentence: #e6f0ee;
+  --lectern-word: #a9d3ce;
+  --lectern-danger: #9c3527;
+
+  --lectern-space-1: 0.25rem;
+  --lectern-space-2: 0.5rem;
+  --lectern-space-3: 0.75rem;
+  --lectern-space-4: 1rem;
+  --lectern-space-5: 1.5rem;
+
+  --lectern-radius-1: 0.25rem;
+  --lectern-radius-2: 0.5rem;
+  --lectern-radius-3: 0.875rem;
+
+  --lectern-font: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --lectern-font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+
+  --lectern-control-size: 2.25rem;
+  --lectern-icon-size: 1.25rem;
+  --lectern-progress-height: 0.25rem;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-lectern-theme="light"]) {
+    --lectern-ink: #ecedf1;
+    --lectern-ink-muted: #a3a7b4;
+    --lectern-paper: #15171b;
+    --lectern-surface: #1d2026;
+    --lectern-line: #2e323a;
+    --lectern-accent: #6fc0b6;
+    --lectern-accent-ink: #10201e;
+    --lectern-accent-soft: #244440;
+    --lectern-sentence: #23313a;
+    --lectern-word: #3d5f5a;
+    --lectern-danger: #e2917f;
+  }
+}
+
+:root[data-lectern-theme="dark"] {
+  --lectern-ink: #ecedf1;
+  --lectern-ink-muted: #a3a7b4;
+  --lectern-paper: #15171b;
+  --lectern-surface: #1d2026;
+  --lectern-line: #2e323a;
+  --lectern-accent: #6fc0b6;
+  --lectern-accent-ink: #10201e;
+  --lectern-accent-soft: #244440;
+  --lectern-sentence: #23313a;
+  --lectern-word: #3d5f5a;
+  --lectern-danger: #e2917f;
+}
+
+/* The bar ---------------------------------------------------------------------------------------- */
+
+.lectern-player {
+  background: var(--lectern-surface);
+  border-block-start: 1px solid var(--lectern-line);
+  bottom: 0;
+  box-sizing: border-box;
+  color: var(--lectern-ink);
+  display: flex;
+  flex-direction: column;
+  font-family: var(--lectern-font);
+  font-size: 0.875rem;
+  inline-size: 100%;
+  inset-inline: 0;
+  position: sticky;
+}
+
+.lectern-player__row {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--lectern-space-3);
+  justify-content: space-between;
+  padding: var(--lectern-space-2) var(--lectern-space-4);
+}
+
+.lectern-player__group {
+  align-items: center;
+  display: flex;
+  gap: var(--lectern-space-1);
+}
+
+.lectern-player__progress {
+  background: var(--lectern-line);
+  block-size: var(--lectern-progress-height);
+  inline-size: 100%;
+}
+
+.lectern-player__progress-fill {
+  background: var(--lectern-accent);
+  block-size: 100%;
+  transition: inline-size 120ms linear;
+}
+
+.lectern-player__clock {
+  align-items: center;
+  color: var(--lectern-ink-muted);
+  display: flex;
+  font-variant-numeric: tabular-nums;
+  gap: var(--lectern-space-2);
+  margin-inline-start: auto;
+}
+
+.lectern-player__mini {
+  align-items: baseline;
+  display: flex;
+  gap: var(--lectern-space-2);
+  margin: 0;
+}
+
+.lectern-player__mini-rate {
+  color: var(--lectern-accent);
+  font-weight: 600;
+}
+
+.lectern-player__error {
+  background: var(--lectern-sentence);
+  border-block-start: 1px solid var(--lectern-danger);
+  color: var(--lectern-danger);
+  margin: 0;
+  padding: var(--lectern-space-2) var(--lectern-space-4);
+}
+
+/* Buttons and icons ------------------------------------------------------------------------------ */
+
+.lectern-button {
+  align-items: center;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--lectern-radius-2);
+  color: inherit;
+  cursor: pointer;
+  display: inline-flex;
+  font: inherit;
+  gap: var(--lectern-space-1);
+  justify-content: center;
+  min-block-size: var(--lectern-control-size);
+  min-inline-size: var(--lectern-control-size);
+  padding: var(--lectern-space-1) var(--lectern-space-2);
+}
+
+.lectern-button:hover {
+  background: var(--lectern-accent-soft);
+}
+
+.lectern-button:focus-visible {
+  outline: 2px solid var(--lectern-accent);
+  outline-offset: 2px;
+}
+
+.lectern-button[aria-pressed="true"] {
+  background: var(--lectern-accent);
+  color: var(--lectern-accent-ink);
+}
+
+.lectern-icon {
+  block-size: var(--lectern-icon-size);
+  flex: none;
+  inline-size: var(--lectern-icon-size);
+}
+
+.lectern-player__control--primary {
+  background: var(--lectern-accent);
+  color: var(--lectern-accent-ink);
+}
+
+/* Speed ------------------------------------------------------------------------------------------ */
+
+/* A control group is a fieldset: the browser's own frame and spacing come off, and the group lays out as
+   one row of controls. */
+
+.lectern-player__group,
+.lectern-speed,
+.lectern-voice,
+.lectern-timer,
+.lectern-voice__group {
+  border: 0;
+  margin: 0;
+  min-inline-size: 0;
+  padding: 0;
+}
+
+.lectern-speed,
+.lectern-voice,
+.lectern-timer {
+  align-items: center;
+  display: flex;
+  gap: var(--lectern-space-2);
+}
+
+.lectern-speed__readout,
+.lectern-voice__head,
+.lectern-timer__readout {
+  align-items: center;
+  display: flex;
+  gap: var(--lectern-space-1);
+  margin: 0;
+}
+
+.lectern-speed__multiplier,
+.lectern-timer__remaining {
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+}
+
+.lectern-speed__pace,
+.lectern-voice__group-title {
+  color: var(--lectern-ink-muted);
+}
+
+.lectern-speed__slider {
+  accent-color: var(--lectern-accent);
+  inline-size: 8rem;
+}
+
+.lectern-speed__presets,
+.lectern-timer__options,
+.lectern-voice__options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--lectern-space-1);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.lectern-speed__preset,
+.lectern-timer__option {
+  padding-inline: var(--lectern-space-2);
+}
+
+/* Voices ----------------------------------------------------------------------------------------- */
+
+.lectern-voice {
+  align-items: flex-start;
+  flex-direction: column;
+}
+
+.lectern-voice__filter {
+  background: var(--lectern-paper);
+  border: 1px solid var(--lectern-line);
+  border-radius: var(--lectern-radius-1);
+  color: inherit;
+  font: inherit;
+  padding: var(--lectern-space-1) var(--lectern-space-2);
+}
+
+.lectern-voice__list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--lectern-space-2);
+  max-block-size: 8rem;
+  overflow-y: auto;
+}
+
+.lectern-voice__group-title {
+  font-size: 0.75rem;
+  margin: 0;
+  text-transform: uppercase;
+}
+
+.lectern-voice__option {
+  justify-content: flex-start;
+}
+
+.lectern-voice__empty {
+  color: var(--lectern-ink-muted);
+  margin: 0;
+}
+
+/* Loading ---------------------------------------------------------------------------------------- */
+
+.lectern-spinner {
+  animation: lectern-spin 900ms linear infinite;
+  border: 2px solid var(--lectern-line);
+  border-block-start-color: var(--lectern-accent);
+  border-radius: 50%;
+  block-size: var(--lectern-icon-size);
+  display: inline-block;
+  inline-size: var(--lectern-icon-size);
+}
+
+@keyframes lectern-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lectern-spinner {
+    animation: none;
+    border-block-start-color: var(--lectern-line);
+  }
+
+  .lectern-player__progress-fill {
+    transition: none;
+  }
+}
+
+/* Compact ---------------------------------------------------------------------------------------- */
+
+.lectern-player--compact .lectern-player__row {
+  gap: var(--lectern-space-2);
+  padding: var(--lectern-space-1) var(--lectern-space-3);
+}
