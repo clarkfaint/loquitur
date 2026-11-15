@@ -193,6 +193,9 @@ importers:
       '@lectern/core-tts':
         specifier: workspace:*
         version: link:../../packages/core-tts
+      '@lectern/store-sql':
+        specifier: workspace:*
+        version: link:../../packages/store-sql
       expo:
         specifier: 58.0.25
         version: 58.0.25(@babel/core@7.29.13(supports-color@7.2.0))(@expo/metro-runtime@58.0.17)(expo-router@58.0.31)(react-dom@19.3.1(react@19.3.0))(react-native-worklets@0.13.1(@babel/core@7.29.13(supports-color@7.2.0))(@react-native/metro-config@0.88.1(@babel/core@7.29.13(supports-color@7.2.0))(supports-color@7.2.0))(react-native@0.88.1(@babel/core@7.29.13(supports-color@7.2.0))(@react-native/metro-config@0.88.1(@babel/core@7.29.13(supports-color@7.2.0))(supports-color@7.2.0))(@types/react@19.3.0)(react@19.3.0)(supports-color@7.2.0))(react@19.3.0)(supports-color@7.2.0))(react-native@0.88.1(@babel/core@7.29.13(supports-color@7.2.0))(@react-native/metro-config@0.88.1(@babel/core@7.29.13(supports-color@7.2.0))(supports-color@7.2.0))(@types/react@19.3.0)(react@19.3.0)(supports-color@7.2.0))(react@19.3.0)(supports-color@7.2.0)(typescript@7.0.2)
@@ -202,6 +205,12 @@ importers:
       expo-constants:
         specifier: ~58.0.16
         version: 58.0.16(expo@58.0.25)(react-native@0.88.1(@babel/core@7.29.13(supports-color@7.2.0))(@react-native/metro-config@0.88.1(@babel/core@7.29.13(supports-color@7.2.0))(supports-color@7.2.0))(@types/react@19.3.0)(react@19.3.0)(supports-color@7.2.0))(supports-color@7.2.0)(typescript@7.0.2)
+      expo-crypto:
+        specifier: ~58.0.8
+        version: 58.0.8(expo@58.0.25)
+      expo-file-system:
+        specifier: ~58.0.13
+        version: 58.0.13(expo@58.0.25)(react-native@0.88.1(@babel/core@7.29.13(supports-color@7.2.0))(@react-native/metro-config@0.88.1(@babel/core@7.29.13(supports-color@7.2.0))(supports-color@7.2.0))(@types/react@19.3.0)(react@19.3.0)(supports-color@7.2.0))
       expo-linking:
         specifier: ~58.0.17
         version: 58.0.17(expo@58.0.25)(react-native@0.88.1(@babel/core@7.29.13(supports-color@7.2.0))(@react-native/metro-config@0.88.1(@babel/core@7.29.13(supports-color@7.2.0))(supports-color@7.2.0))(@types/react@19.3.0)(react@19.3.0)(supports-color@7.2.0))(react@19.3.0)(supports-color@7.2.0)(typescript@7.0.2)
@@ -211,6 +220,9 @@ importers:
       expo-secure-store:
         specifier: ~58.0.3
         version: 58.0.3(expo@58.0.25)
+      expo-sqlite:
+        specifier: ~58.0.17
+        version: 58.0.17(expo@58.0.25)(react-native@0.88.1(@babel/core@7.29.13(supports-color@7.2.0))(@react-native/metro-config@0.88.1(@babel/core@7.29.13(supports-color@7.2.0))(supports-color@7.2.0))(@types/react@19.3.0)(react@19.3.0)(supports-color@7.2.0))(react@19.3.0)
       expo-status-bar:
         specifier: ~58.0.5
         version: 58.0.5(expo@58.0.25)(react-native@0.88.1(@babel/core@7.29.13(supports-color@7.2.0))(@react-native/metro-config@0.88.1(@babel/core@7.29.13(supports-color@7.2.0))(supports-color@7.2.0))(@types/react@19.3.0)(react@19.3.0)(supports-color@7.2.0))(react@19.3.0)
@@ -248,15 +260,9 @@ importers:
       chokidar:
         specifier: 6.0.0
         version: 6.0.0
-      electron:
-        specifier: 45.3.1
-        version: 45.3.1(supports-color@7.2.0)
-      electron-builder:
-        specifier: 26.18.0
-        version: 26.18.0(electron-builder-squirrel-windows@26.18.0)(supports-color@7.2.0)
       electron-vite:
         specifier: 6.0.0
-        version: 6.0.0(supports-color@7.2.0)(vite@8.3.8(@types/node@26.6.6)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15))
+        version: 6.0.0(supports-color@7.2.0)(vite@8.3.8(@types/node@26.6.6)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.51.2)(tsx@4.23.15))
       zod:
         specifier: 4.6.7
         version: 4.6.7
@@ -270,9 +276,15 @@ importers:
       '@playwright/test':
         specifier: 1.65.0
         version: 1.65.0
+      electron:
+        specifier: 45.3.1
+        version: 45.3.1(supports-color@7.2.0)
+      electron-builder:
+        specifier: 26.18.0
+        version: 26.18.0(electron-builder-squirrel-windows@26.18.0)(supports-color@7.2.0)
       vitest:
         specifier: 5.1.0
-        version: 5.1.0(@types/node@26.6.6)(happy-dom@21.0.4)(jsdom@31.0.1(@napi-rs/canvas@1.1.1)(@noble/hashes@1.8.0))(vite@8.3.8(@types/node@26.6.6)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15))
+        version: 5.1.0(@types/node@26.6.6)(happy-dom@21.0.4)(jsdom@31.0.1(@napi-rs/canvas@1.1.1)(@noble/hashes@1.8.0))(vite@8.3.8(@types/node@26.6.6)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.51.2)(tsx@4.23.15))
 
   apps/extension:
     dependencies:
@@ -296,7 +308,7 @@ importers:
         version: 0.6.0
       '@wxt-dev/module-react':
         specifier: 1.2.2
-        version: 1.2.2(vite@8.3.8(@types/node@26.6.6)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15))(wxt@0.21.5(esbuild@0.28.2)(rolldown@1.2.19)(typescript@7.0.2)(vite@8.3.8(@types/node@26.6.6)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)))
+        version: 1.2.2(babel-plugin-react-compiler@1.0.0)(vite@8.3.8(@types/node@26.6.6)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.51.2)(tsx@4.23.15))(wxt@0.21.5(esbuild@0.28.2)(rolldown@1.2.19)(typescript@7.0.2)(vite@8.3.8(@types/node@26.6.6)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.51.2)(tsx@4.23.15)))
       react:
         specifier: 19.3.1
         version: 19.3.1
@@ -305,7 +317,7 @@ importers:
         version: 19.3.1(react@19.3.1)
       wxt:
         specifier: 0.21.5
-        version: 0.21.5(esbuild@0.28.2)(rolldown@1.2.19)(typescript@7.0.2)(vite@8.3.8(@types/node@26.6.6)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15))
+        version: 0.21.5(esbuild@0.28.2)(rolldown@1.2.19)(typescript@7.0.2)(vite@8.3.8(@types/node@26.6.6)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.51.2)(tsx@4.23.15))
       zod:
         specifier: 4.6.7
         version: 4.6.7
@@ -333,7 +345,7 @@ importers:
         version: 31.0.1(@napi-rs/canvas@1.1.1)(@noble/hashes@1.8.0)
       vitest:
         specifier: 5.1.0
-        version: 5.1.0(@types/node@26.6.6)(happy-dom@21.0.4)(jsdom@31.0.1(@napi-rs/canvas@1.1.1)(@noble/hashes@1.8.0))(vite@8.3.8(@types/node@26.6.6)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15))
+        version: 5.1.0(@types/node@26.6.6)(happy-dom@21.0.4)(jsdom@31.0.1(@napi-rs/canvas@1.1.1)(@noble/hashes@1.8.0))(vite@8.3.8(@types/node@26.6.6)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.51.2)(tsx@4.23.15))
 
   apps/server:
     dependencies:
@@ -413,13 +425,13 @@ importers:
         version: 19.3.0(@types/react@19.3.0)
       '@vitejs/plugin-react':
         specifier: 6.3.0
-        version: 6.3.0(vite@8.3.8(@types/node@26.6.6)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15))
+        version: 6.3.0(babel-plugin-react-compiler@1.0.0)(vite@8.3.8(@types/node@26.6.6)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.51.2)(tsx@4.23.15))
       happy-dom:
         specifier: 21.0.4
         version: 21.0.4
       vite:
         specifier: 8.3.8
-        version: 8.3.8(@types/node@26.6.6)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)
+        version: 8.3.8(@types/node@26.6.6)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.51.2)(tsx@4.23.15)
 
   packages/api-client:
     dependencies:
@@ -507,6 +519,19 @@ importers:
         specifier: 1.17.1
         version: 1.17.1
 
+  packages/store-sql:
+    dependencies:
+      '@lectern/core':
+        specifier: workspace:*
+        version: link:../core
+      zod:
+        specifier: 4.6.7
+        version: 4.6.7
+    devDependencies:
+      better-sqlite3:
+        specifier: 13.2.0
+        version: 13.2.0
+
   packages/ui-web:
     dependencies:
       '@lectern/core':
@@ -542,7 +567,7 @@ importers:
         version: 19.3.0(@types/react@19.3.0)
       '@vitejs/plugin-react':
         specifier: 6.3.0
-        version: 6.3.0(vite@8.3.8(@types/node@26.6.6)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15))
+        version: 6.3.0(babel-plugin-react-compiler@1.0.0)(vite@8.3.8(@types/node@26.6.6)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.51.2)(tsx@4.23.15))
       fake-indexeddb:
         specifier: 6.2.8
         version: 6.2.8
@@ -551,7 +576,7 @@ importers:
         version: 21.0.4
       vite:
         specifier: 8.3.8
-        version: 8.3.8(@types/node@26.6.6)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)
+        version: 8.3.8(@types/node@26.6.6)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.51.2)(tsx@4.23.15)
 
 packages:
 
@@ -2486,6 +2511,9 @@ packages:
   avvio@9.3.1:
     resolution: {integrity: sha512-QyTKW61/qlba+cUQBm/sT9X8lri4UdomqSDwCnrnj1IvLVDRRiXRkz4CgBRWB+/cmfC7SK5WQc8T1vSdGvaUcQ==}
 
+  await-lock@2.2.2:
+    resolution: {integrity: sha512-aDczADvlvTGajTDjcjpJMqRkOF6Qdz3YbPZm/PyW6tKPkx2hlYBzxMhEywM/tU72HrVZjgl5VCdRuMlA7pZ8Gw==}
+
   aws4@1.13.2:
     resolution: {integrity: sha512-lHe62zvbTB5eEABUVi/AwVh0ZKY9rMMDhmm+eeyuuUQbQ3+J+fONVQOZyj+DdrvD4BY33uYniyRJ4UJIaSKAfw==}
 
@@ -2551,6 +2579,10 @@ packages:
 
   bcp-47@2.1.2:
     resolution: {integrity: sha512-wsv86UuNFuPnVieKLyECTT+CP1WSAHeoIg5P3xu2kA9Z+7fVPoKt7dxzSeEhtJel0AI+NW3fIW3KtTKQKUCngg==}
+
+  better-sqlite3@13.2.0:
+    resolution: {integrity: sha512-Z8Q/9x/uNyKxA1v4FNodyItRVRw1TeKBrmj32JhxhR0ceNcBY+wMobt/Bv7M7TzwPAXjnZRtNaEsATnUZSKWZQ==}
+    engines: {node: '>=22'}
 
   big-integer@1.6.52:
     resolution: {integrity: sha512-QxD8cf2eVqJOOz63z6JIN9BzvVs/dlySa5HGSBH5xtR8dPteIRQnBxxKqkNTiT6jbDTF6jAfrd4oMcND9RGbQg==}
@@ -3147,6 +3179,11 @@ packages:
       expo: '*'
       react-native: '*'
 
+  expo-crypto@58.0.8:
+    resolution: {integrity: sha512-yMSiMlallOweQ28oQ3BqJf6I/4ZoBggFNRg+PfjG1NbQWBWzGKmkPPUrd3yT0oPW4P+AYppg+Mw6xoAYddLUKA==}
+    peerDependencies:
+      expo: '*'
+
   expo-file-system@58.0.13:
     resolution: {integrity: sha512-+/1aFErkawyky5UdWI06zYeO2DeHUnfaWnYHeiI8M8Z/sB6L66gI3WUxqtvUvKJoaM0Ti1CximD3x3JwteLYIg==}
     peerDependencies:
@@ -3256,6 +3293,13 @@ packages:
   expo-server@58.1.0:
     resolution: {integrity: sha512-jo7I6uHnP5OQYKx3+7lbpdVVnOEwFj2ryDkQdauUQSwgh2HuMUkiFXWUIVe01ts6DLRoff5U0Tv+uNb3CMq/kw==}
     engines: {node: ^22.13.0 || ^24.3.0 || ^26.0.0 || >=27.0.0}
+
+  expo-sqlite@58.0.17:
+    resolution: {integrity: sha512-nzIS8doaxGYPBu+jJD1aa1wsF5vsafLEr3ji4wwR1MWd66KV3u4lKotJPylxJkP08DZWn2uUnTXyMw9t7BdGUA==}
+    peerDependencies:
+      expo: '*'
+      react: '*'
+      react-native: '*'
 
   expo-status-bar@58.0.5:
     resolution: {integrity: sha512-Lq1h7QpNY2FY7+Dyrn15atrFZs1Yd4IfMfhwyyWb3TqWc+vwtYZH54W9VhhjqXtgitXe+RVAX7YZoCekjbLmug==}
@@ -4137,6 +4181,10 @@ packages:
   node-abi@4.40.0:
     resolution: {integrity: sha512-GuvqvtrOk+AC27RidBxBsMzVNkwNl7PjHgc4NXbmdvSVLgIUjpaqcG1FjNRYnt2Yn9Ytq+Ln37XsBaglUcte/w==}
     engines: {node: '>=22.12.0'}
+
+  node-addon-api@8.9.2:
+    resolution: {integrity: sha512-VijLXbi3UACN69I0JVXJsX4tjACjNoQDgv2gTF6sx2wWEi8tkSg2eX8p5gSIFi8z2+DL3oHmY6OyKce38SDolg==}
+    engines: {node: ^18 || ^20 || >= 21}
 
   node-api-version@0.2.1:
     resolution: {integrity: sha512-2xP/IGGMmmSQpI1+O/k72jF/ykvZ89JeuKX3TLJAYPDVLUalrshrLHkeVcCCZqG/eEa635cr8IBYzgnDvM2O8Q==}
@@ -7284,10 +7332,12 @@ snapshots:
 
   '@ungap/structured-clone@1.4.0': {}
 
-  '@vitejs/plugin-react@6.3.0(vite@8.3.8(@types/node@26.6.6)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15))':
+  '@vitejs/plugin-react@6.3.0(babel-plugin-react-compiler@1.0.0)(vite@8.3.8(@types/node@26.6.6)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.51.2)(tsx@4.23.15))':
     dependencies:
       '@rolldown/pluginutils': 1.1.0
-      vite: 8.3.8(@types/node@26.6.6)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)
+      vite: 8.3.8(@types/node@26.6.6)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.51.2)(tsx@4.23.15)
+    optionalDependencies:
+      babel-plugin-react-compiler: 1.0.0
 
   '@vitest/mocker@5.1.0(vite@8.3.8(@types/node@26.6.6)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.51.2)(tsx@4.23.15))':
     dependencies:
@@ -7297,15 +7347,6 @@ snapshots:
       magic-string: 1.4.5
     optionalDependencies:
       vite: 8.3.8(@types/node@26.6.6)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.51.2)(tsx@4.23.15)
-
-  '@vitest/mocker@5.1.0(vite@8.3.8(@types/node@26.6.6)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15))':
-    dependencies:
-      '@jridgewell/trace-mapping': 0.3.31
-      '@vitest/spy': 5.1.0
-      estree-walker: 3.0.3
-      magic-string: 1.4.5
-    optionalDependencies:
-      vite: 8.3.8(@types/node@26.6.6)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)
 
   '@vitest/spy@5.1.0': {}
 
@@ -7324,11 +7365,11 @@ snapshots:
     dependencies:
       '@types/har-format': 1.2.16
 
-  '@wxt-dev/module-react@1.2.2(vite@8.3.8(@types/node@26.6.6)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15))(wxt@0.21.5(esbuild@0.28.2)(rolldown@1.2.19)(typescript@7.0.2)(vite@8.3.8(@types/node@26.6.6)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)))':
+  '@wxt-dev/module-react@1.2.2(babel-plugin-react-compiler@1.0.0)(vite@8.3.8(@types/node@26.6.6)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.51.2)(tsx@4.23.15))(wxt@0.21.5(esbuild@0.28.2)(rolldown@1.2.19)(typescript@7.0.2)(vite@8.3.8(@types/node@26.6.6)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.51.2)(tsx@4.23.15)))':
     dependencies:
-      '@vitejs/plugin-react': 6.3.0(vite@8.3.8(@types/node@26.6.6)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15))
-      vite: 8.3.8(@types/node@26.6.6)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)
-      wxt: 0.21.5(esbuild@0.28.2)(rolldown@1.2.19)(typescript@7.0.2)(vite@8.3.8(@types/node@26.6.6)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15))
+      '@vitejs/plugin-react': 6.3.0(babel-plugin-react-compiler@1.0.0)(vite@8.3.8(@types/node@26.6.6)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.51.2)(tsx@4.23.15))
+      vite: 8.3.8(@types/node@26.6.6)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.51.2)(tsx@4.23.15)
+      wxt: 0.21.5(esbuild@0.28.2)(rolldown@1.2.19)(typescript@7.0.2)(vite@8.3.8(@types/node@26.6.6)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.51.2)(tsx@4.23.15))
     transitivePeerDependencies:
       - '@rolldown/plugin-babel'
       - babel-plugin-react-compiler
@@ -7477,6 +7518,8 @@ snapshots:
       '@fastify/error': 4.2.1
       fastq: 1.20.3
 
+  await-lock@2.2.2: {}
+
   aws4@1.13.2: {}
 
   babel-plugin-polyfill-corejs2@0.4.17(@babel/core@7.29.13(supports-color@7.2.0))(supports-color@7.2.0):
@@ -7586,6 +7629,10 @@ snapshots:
       is-alphabetical: 2.0.1
       is-alphanumerical: 2.0.1
       is-decimal: 2.0.1
+
+  better-sqlite3@13.2.0:
+    dependencies:
+      node-addon-api: 8.9.2
 
   big-integer@1.6.52: {}
 
@@ -8074,7 +8121,7 @@ snapshots:
 
   electron-to-chromium@1.5.486: {}
 
-  electron-vite@6.0.0(supports-color@7.2.0)(vite@8.3.8(@types/node@26.6.6)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)):
+  electron-vite@6.0.0(supports-color@7.2.0)(vite@8.3.8(@types/node@26.6.6)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.51.2)(tsx@4.23.15)):
     dependencies:
       '@babel/core': 7.29.13(supports-color@7.2.0)
       '@babel/plugin-transform-arrow-functions': 7.29.7(@babel/core@7.29.13(supports-color@7.2.0))
@@ -8082,7 +8129,7 @@ snapshots:
       magic-string: 1.4.5
       picocolors: 1.1.1
       rolldown: 1.2.19
-      vite: 8.3.8(@types/node@26.6.6)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)
+      vite: 8.3.8(@types/node@26.6.6)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.51.2)(tsx@4.23.15)
     transitivePeerDependencies:
       - supports-color
 
@@ -8230,6 +8277,10 @@ snapshots:
       - supports-color
       - typescript
 
+  expo-crypto@58.0.8(expo@58.0.25):
+    dependencies:
+      expo: 58.0.25(@babel/core@7.29.13(supports-color@7.2.0))(@expo/metro-runtime@58.0.17)(expo-router@58.0.31)(react-dom@19.3.1(react@19.3.0))(react-native-worklets@0.13.1(@babel/core@7.29.13(supports-color@7.2.0))(@react-native/metro-config@0.88.1(@babel/core@7.29.13(supports-color@7.2.0))(supports-color@7.2.0))(react-native@0.88.1(@babel/core@7.29.13(supports-color@7.2.0))(@react-native/metro-config@0.88.1(@babel/core@7.29.13(supports-color@7.2.0))(supports-color@7.2.0))(@types/react@19.3.0)(react@19.3.0)(supports-color@7.2.0))(react@19.3.0)(supports-color@7.2.0))(react-native@0.88.1(@babel/core@7.29.13(supports-color@7.2.0))(@react-native/metro-config@0.88.1(@babel/core@7.29.13(supports-color@7.2.0))(supports-color@7.2.0))(@types/react@19.3.0)(react@19.3.0)(supports-color@7.2.0))(react@19.3.0)(supports-color@7.2.0)(typescript@7.0.2)
+
   expo-file-system@58.0.13(expo@58.0.25)(react-native@0.88.1(@babel/core@7.29.13(supports-color@7.2.0))(@react-native/metro-config@0.88.1(@babel/core@7.29.13(supports-color@7.2.0))(supports-color@7.2.0))(@types/react@19.3.0)(react@19.3.0)(supports-color@7.2.0)):
     dependencies:
       expo: 58.0.25(@babel/core@7.29.13(supports-color@7.2.0))(@expo/metro-runtime@58.0.17)(expo-router@58.0.31)(react-dom@19.3.1(react@19.3.0))(react-native-worklets@0.13.1(@babel/core@7.29.13(supports-color@7.2.0))(@react-native/metro-config@0.88.1(@babel/core@7.29.13(supports-color@7.2.0))(supports-color@7.2.0))(react-native@0.88.1(@babel/core@7.29.13(supports-color@7.2.0))(@react-native/metro-config@0.88.1(@babel/core@7.29.13(supports-color@7.2.0))(supports-color@7.2.0))(@types/react@19.3.0)(react@19.3.0)(supports-color@7.2.0))(react@19.3.0)(supports-color@7.2.0))(react-native@0.88.1(@babel/core@7.29.13(supports-color@7.2.0))(@react-native/metro-config@0.88.1(@babel/core@7.29.13(supports-color@7.2.0))(supports-color@7.2.0))(@types/react@19.3.0)(react@19.3.0)(supports-color@7.2.0))(react@19.3.0)(supports-color@7.2.0)(typescript@7.0.2)
@@ -8341,6 +8392,13 @@ snapshots:
       expo: 58.0.25(@babel/core@7.29.13(supports-color@7.2.0))(@expo/metro-runtime@58.0.17)(expo-router@58.0.31)(react-dom@19.3.1(react@19.3.0))(react-native-worklets@0.13.1(@babel/core@7.29.13(supports-color@7.2.0))(@react-native/metro-config@0.88.1(@babel/core@7.29.13(supports-color@7.2.0))(supports-color@7.2.0))(react-native@0.88.1(@babel/core@7.29.13(supports-color@7.2.0))(@react-native/metro-config@0.88.1(@babel/core@7.29.13(supports-color@7.2.0))(supports-color@7.2.0))(@types/react@19.3.0)(react@19.3.0)(supports-color@7.2.0))(react@19.3.0)(supports-color@7.2.0))(react-native@0.88.1(@babel/core@7.29.13(supports-color@7.2.0))(@react-native/metro-config@0.88.1(@babel/core@7.29.13(supports-color@7.2.0))(supports-color@7.2.0))(@types/react@19.3.0)(react@19.3.0)(supports-color@7.2.0))(react@19.3.0)(supports-color@7.2.0)(typescript@7.0.2)
 
   expo-server@58.1.0: {}
+
+  expo-sqlite@58.0.17(expo@58.0.25)(react-native@0.88.1(@babel/core@7.29.13(supports-color@7.2.0))(@react-native/metro-config@0.88.1(@babel/core@7.29.13(supports-color@7.2.0))(supports-color@7.2.0))(@types/react@19.3.0)(react@19.3.0)(supports-color@7.2.0))(react@19.3.0):
+    dependencies:
+      await-lock: 2.2.2
+      expo: 58.0.25(@babel/core@7.29.13(supports-color@7.2.0))(@expo/metro-runtime@58.0.17)(expo-router@58.0.31)(react-dom@19.3.1(react@19.3.0))(react-native-worklets@0.13.1(@babel/core@7.29.13(supports-color@7.2.0))(@react-native/metro-config@0.88.1(@babel/core@7.29.13(supports-color@7.2.0))(supports-color@7.2.0))(react-native@0.88.1(@babel/core@7.29.13(supports-color@7.2.0))(@react-native/metro-config@0.88.1(@babel/core@7.29.13(supports-color@7.2.0))(supports-color@7.2.0))(@types/react@19.3.0)(react@19.3.0)(supports-color@7.2.0))(react@19.3.0)(supports-color@7.2.0))(react-native@0.88.1(@babel/core@7.29.13(supports-color@7.2.0))(@react-native/metro-config@0.88.1(@babel/core@7.29.13(supports-color@7.2.0))(supports-color@7.2.0))(@types/react@19.3.0)(react@19.3.0)(supports-color@7.2.0))(react@19.3.0)(supports-color@7.2.0)(typescript@7.0.2)
+      react: 19.3.0
+      react-native: 0.88.1(@babel/core@7.29.13(supports-color@7.2.0))(@react-native/metro-config@0.88.1(@babel/core@7.29.13(supports-color@7.2.0))(supports-color@7.2.0))(@types/react@19.3.0)(react@19.3.0)(supports-color@7.2.0)
 
   expo-status-bar@58.0.5(expo@58.0.25)(react-native@0.88.1(@babel/core@7.29.13(supports-color@7.2.0))(@react-native/metro-config@0.88.1(@babel/core@7.29.13(supports-color@7.2.0))(supports-color@7.2.0))(@types/react@19.3.0)(react@19.3.0)(supports-color@7.2.0))(react@19.3.0):
     dependencies:
@@ -9468,6 +9526,8 @@ snapshots:
     dependencies:
       semver: 7.7.4
 
+  node-addon-api@8.9.2: {}
+
   node-api-version@0.2.1:
     dependencies:
       semver: 7.7.4
@@ -10428,7 +10488,7 @@ snapshots:
 
   unicode-property-aliases-ecmascript@2.2.0: {}
 
-  unimport@6.5.0(esbuild@0.28.2)(rolldown@1.2.19)(vite@8.3.8(@types/node@26.6.6)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)):
+  unimport@6.5.0(esbuild@0.28.2)(rolldown@1.2.19)(vite@8.3.8(@types/node@26.6.6)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.51.2)(tsx@4.23.15)):
     dependencies:
       acorn: 8.19.0
       escape-string-regexp: 5.0.0
@@ -10442,7 +10502,7 @@ snapshots:
       scule: 1.3.0
       strip-literal: 4.0.0
       tinyglobby: 0.2.17
-      unplugin: 3.7.0(esbuild@0.28.2)(rolldown@1.2.19)(vite@8.3.8(@types/node@26.6.6)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15))
+      unplugin: 3.7.0(esbuild@0.28.2)(rolldown@1.2.19)(vite@8.3.8(@types/node@26.6.6)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.51.2)(tsx@4.23.15))
       unplugin-utils: 0.3.2
     optionalDependencies:
       rolldown: 1.2.19
@@ -10468,7 +10528,7 @@ snapshots:
       pathe: 2.0.3
       picomatch: 4.0.7
 
-  unplugin@3.7.0(esbuild@0.28.2)(rolldown@1.2.19)(vite@8.3.8(@types/node@26.6.6)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)):
+  unplugin@3.7.0(esbuild@0.28.2)(rolldown@1.2.19)(vite@8.3.8(@types/node@26.6.6)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.51.2)(tsx@4.23.15)):
     dependencies:
       '@jridgewell/remapping': 2.3.5
       '@rolldown/pluginutils': 1.1.0
@@ -10477,7 +10537,7 @@ snapshots:
     optionalDependencies:
       esbuild: 0.28.2
       rolldown: 1.2.19
-      vite: 8.3.8(@types/node@26.6.6)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)
+      vite: 8.3.8(@types/node@26.6.6)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.51.2)(tsx@4.23.15)
 
   unzipper@0.12.5:
     dependencies:
@@ -10522,20 +10582,6 @@ snapshots:
       terser: 5.51.2
       tsx: 4.23.15
 
-  vite@8.3.8(@types/node@26.6.6)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15):
-    dependencies:
-      lightningcss: 1.33.0
-      picomatch: 4.0.7
-      postcss: 8.5.32
-      rolldown: 1.2.19
-      tinyglobby: 0.2.17
-    optionalDependencies:
-      '@types/node': 26.6.6
-      esbuild: 0.28.2
-      fsevents: 2.3.3
-      jiti: 2.7.0
-      tsx: 4.23.15
-
   vitest@5.1.0(@types/node@26.6.6)(happy-dom@21.0.4)(jsdom@31.0.1(@napi-rs/canvas@1.1.1)(@noble/hashes@1.8.0))(vite@8.3.8(@types/node@26.6.6)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.51.2)(tsx@4.23.15)):
     dependencies:
       '@types/chai': 5.2.3
@@ -10551,29 +10597,6 @@ snapshots:
       tinyexec: 1.3.1
       tinyglobby: 0.2.17
       vite: 8.3.8(@types/node@26.6.6)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.51.2)(tsx@4.23.15)
-      why-is-node-running: 3.2.1
-    optionalDependencies:
-      '@types/node': 26.6.6
-      happy-dom: 21.0.4
-      jsdom: 31.0.1(@napi-rs/canvas@1.1.1)(@noble/hashes@1.8.0)
-    transitivePeerDependencies:
-      - msw
-
-  vitest@5.1.0(@types/node@26.6.6)(happy-dom@21.0.4)(jsdom@31.0.1(@napi-rs/canvas@1.1.1)(@noble/hashes@1.8.0))(vite@8.3.8(@types/node@26.6.6)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)):
-    dependencies:
-      '@types/chai': 5.2.3
-      '@vitest/mocker': 5.1.0(vite@8.3.8(@types/node@26.6.6)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15))
-      chai: 6.3.0
-      es-module-lexer: 2.3.2
-      expect-type: 1.4.0
-      magic-string: 1.4.5
-      obug: 3.0.0
-      picomatch: 4.0.7
-      std-env: 4.3.0
-      tinybench: 6.2.3
-      tinyexec: 1.3.1
-      tinyglobby: 0.2.17
-      vite: 8.3.8(@types/node@26.6.6)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)
       why-is-node-running: 3.2.1
     optionalDependencies:
       '@types/node': 26.6.6
@@ -10661,7 +10684,7 @@ snapshots:
 
   ws@8.23.0: {}
 
-  wxt@0.21.5(esbuild@0.28.2)(rolldown@1.2.19)(typescript@7.0.2)(vite@8.3.8(@types/node@26.6.6)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)):
+  wxt@0.21.5(esbuild@0.28.2)(rolldown@1.2.19)(typescript@7.0.2)(vite@8.3.8(@types/node@26.6.6)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.51.2)(tsx@4.23.15)):
     dependencies:
       '@1natsu/wait-element': 5.0.0
       '@aklinker1/rollup-plugin-visualizer': 5.12.0
@@ -10690,8 +10713,8 @@ snapshots:
       tiny-open: 1.3.0
       tinyexec: 1.3.1
       tinyglobby: 0.2.17
-      unimport: 6.5.0(esbuild@0.28.2)(rolldown@1.2.19)(vite@8.3.8(@types/node@26.6.6)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15))
-      vite: 8.3.8(@types/node@26.6.6)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)
+      unimport: 6.5.0(esbuild@0.28.2)(rolldown@1.2.19)(vite@8.3.8(@types/node@26.6.6)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.51.2)(tsx@4.23.15))
+      vite: 8.3.8(@types/node@26.6.6)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.51.2)(tsx@4.23.15)
     optionalDependencies:
       typescript: 7.0.2
     transitivePeerDependencies:
