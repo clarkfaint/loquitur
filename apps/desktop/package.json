@@ -17,6 +17,7 @@
   "dependencies": {
     "@lectern/core": "workspace:*",
     "@lectern/ui-web": "workspace:*",
+    "chokidar": "6.0.0",
     "electron": "45.3.1",
     "electron-builder": "26.18.0",
     "electron-vite": "6.0.0",

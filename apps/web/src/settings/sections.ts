@@ -8,6 +8,7 @@
 
 import type { ComponentType } from "react";
 import { HotkeysSection } from "../desktop/HotkeysSection";
+import { WatchFoldersSection } from "../desktop/WatchFoldersSection";
 import { OfflineSection } from "../offline/OfflineSection";
 
 /** One registered section: an id for its key and DOM anchor, a title, and the component to render. */
@@ -21,4 +22,5 @@ export interface SettingsSection {
 export const sections: SettingsSection[] = [
   { id: "offline", title: "Offline", component: OfflineSection },
   { id: "hotkeys", title: "Global shortcuts", component: HotkeysSection },
+  { id: "watch-folders", title: "Watched folders", component: WatchFoldersSection },
 ];
