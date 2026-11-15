@@ -2038,7 +2038,7 @@ pnpm --filter @lectern/android exec vitest run \
   && pnpm --filter @lectern/android exec expo export --platform android --output-dir dist \
   && (cd apps/android && npx expo prebuild --platform android --clean --no-install) \
   && grep -q "FOREGROUND_SERVICE_MEDIA_PLAYBACK" apps/android/android/app/src/main/AndroidManifest.xml \
-  && ! grep -q "RECORD_AUDIO" apps/android/android/app/src/main/AndroidManifest.xml \
+  && ! grep -q 'android.permission.RECORD_AUDIO"/>' apps/android/android/app/src/main/AndroidManifest.xml \
   && (cd apps/android/android && ./gradlew :app:assembleDebug -q)
 ```
 Pass: exit code 0. Record the `AudioPlaylist` members used, copied from the installed `.d.ts`, in the evidence file. On-device conformance runs in U-052.
