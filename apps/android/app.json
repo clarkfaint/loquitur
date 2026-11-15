@@ -36,6 +36,22 @@
           "enableBackgroundRecording": false,
           "recordAudioAndroid": false
         }
+      ],
+      [
+        "expo-sharing",
+        {
+          "android": {
+            "enabled": true,
+            "singleShareMimeTypes": [
+              "text/plain",
+              "application/pdf",
+              "application/epub+zip",
+              "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+              "image/*"
+            ],
+            "multipleShareMimeTypes": ["image/*"]
+          }
+        }
       ]
     ]
   }
