@@ -13,6 +13,12 @@
  * file or an image in it waits for the button. Items Lectern will not import are listed with the reason and never
  * reach the hub.
  *
+ * **Images are read here, on the device.** A shared photograph goes through the scan tab's own path —
+ * `recognizePages` for the text, `saveScan` for the document — so it is recognised by the phone's own ML Kit
+ * engine and never reaches the hub, which is F§5.5's boundary for the camera path; the hub's OCR stays for the
+ * files F§5.4 hands it. A share that carried no text at all is reported as such rather than as an empty
+ * document, because there is nothing to store.
+ *
  * `expo-sharing` keeps a copy of every shared file in this app's cache, and F§10.4 keeps no copies of shared files
  * after an import, so the payloads are cleared once the imports have finished reading them. The plan and the
  * results are this screen's own state rather than the hook's, so clearing does not take the list off the screen.
@@ -22,7 +28,8 @@ import { Stack, useRouter } from "expo-router";
 import { useIncomingShare } from "expo-sharing";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
-import { type ImportResult, importPickedFile, importTextLocal, importUrl, type PickedFile } from "../src/import/import-service";
+import { type ImportResult, importPickedFile, importTextLocal, importUrl } from "../src/import/import-service";
+import { recognizePages, saveScan } from "../src/scan/scan-service";
 import { planShare, type ShareAction } from "../src/share/route-share";
 import { radius, type Theme, useTheme } from "../src/theme";
 
@@ -46,43 +53,9 @@ interface ShareRow {
   docIds: string[];
 }
 
-/** The image types a shared photo can be, by the extension its copy kept. */
-const IMAGE_MIME_BY_EXTENSION = new Map<string, string>([
-  ["bmp", "image/bmp"],
-  ["gif", "image/gif"],
-  ["heic", "image/heic"],
-  ["heif", "image/heif"],
-  ["jpeg", "image/jpeg"],
-  ["jpg", "image/jpeg"],
-  ["png", "image/png"],
-  ["tif", "image/tiff"],
-  ["tiff", "image/tiff"],
-  ["webp", "image/webp"],
-]);
-
 /** A failure as the sentence a reader can act on. */
 function problemOf(cause: unknown): string {
   return cause instanceof Error ? cause.message : String(cause);
-}
-
-/** The last path part of a URI, which is where a shared copy's own name is. */
-function lastSegmentOf(uri: string): string {
-  const withoutQuery = uri.split("?", 1).join("");
-  const slash = withoutQuery.lastIndexOf("/");
-  return slash < 0 ? "" : withoutQuery.slice(slash + 1);
-}
-
-/** The type a shared image's copy is recorded as, from the extension it kept, or `""` when it has none. */
-function imageMimeOf(name: string): string {
-  const dot = name.lastIndexOf(".");
-  if (dot < 0) return "";
-  return IMAGE_MIME_BY_EXTENSION.get(name.slice(dot + 1).toLowerCase()) ?? "";
-}
-
-/** The file a shared image's copy is: F§5.4 decides what the bytes are, so the type is only a hint. */
-function imageFile(uri: string): PickedFile {
-  const name = lastSegmentOf(uri);
-  return { uri, name, mime: imageMimeOf(name) };
 }
 
 /** A short label for a row: what it will import, in the reader's terms. */
@@ -103,15 +76,19 @@ function stateText(row: ShareRow): string {
   return row.docIds.length > 1 ? `${row.docIds.length} documents added to the library.` : "Added to the library.";
 }
 
-/** Run one planned action through the import pipeline (F§7.2, F§10.4). Images go to the hub's own parse. */
+/**
+ * Run one planned action through the import pipeline (F§7.2, F§10.4). Files go to the hub's own parse; images are
+ * read on this device by the scan tab's path, so a shared photograph is recognised by the phone's ML Kit engine
+ * and never uploaded. A share whose images carried no text is a refusal, not an empty document.
+ */
 async function importAction(action: ShareAction): Promise<ImportResult[]> {
   if (action.kind === "text") return [await importTextLocal(action.text)];
   if (action.kind === "url") return [await importUrl(action.url)];
   if (action.kind === "file") return [await importPickedFile({ uri: action.uri, name: action.name, mime: action.mime })];
   if (action.kind === "images") {
-    const results: ImportResult[] = [];
-    for (const uri of action.uris) results.push(await importPickedFile(imageFile(uri)));
-    return results;
+    const saved = await saveScan(await recognizePages(action.uris), action.uris);
+    if (saved === null) throw new Error("No text was found in the shared images.");
+    return [saved];
   }
   return [];
 }
