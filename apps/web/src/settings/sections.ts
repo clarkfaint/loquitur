@@ -7,6 +7,7 @@
  */
 
 import type { ComponentType } from "react";
+import { HotkeysSection } from "../desktop/HotkeysSection";
 import { OfflineSection } from "../offline/OfflineSection";
 
 /** One registered section: an id for its key and DOM anchor, a title, and the component to render. */
@@ -17,4 +18,7 @@ export interface SettingsSection {
 }
 
 /** Every registered section, in the order the settings page lists them. */
-export const sections: SettingsSection[] = [{ id: "offline", title: "Offline", component: OfflineSection }];
+export const sections: SettingsSection[] = [
+  { id: "offline", title: "Offline", component: OfflineSection },
+  { id: "hotkeys", title: "Global shortcuts", component: HotkeysSection },
+];
