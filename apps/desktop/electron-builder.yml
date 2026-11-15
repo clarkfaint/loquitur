@@ -1,0 +1,82 @@
+# Lectern desktop packaging (F§10.3, F§11).
+#
+# One configuration, two platforms, and nothing else: the shell is a local application that talks to the
+# operator's own hub, so there is no code signing, no notarization, no publish provider, no update feed and no
+# store submission anywhere in this file.
+#
+# `out/**` is the whole application. The main process and the preload script are compiled by
+# `electron-vite build` into `out/`, and every dependency rides inside the main bundle
+# (`externalizeDeps: false` in `electron.vite.config.ts`), so the package needs no `node_modules` of its own.
+# The reader UI is `apps/web`'s production build, copied into `resources/` by `scripts/copy-web.mjs`; it is
+# carried twice on purpose, and both copies are load-bearing:
+#
+# - inside the app archive, at `resources/web`, because the main process resolves the page from its own
+#   directory (`join(__dirname, "..", "..", "resources/web/index.html")`) and that directory is the archive in a
+#   packaged application;
+# - beside the archive, through `extraResources` below, where `scripts/verify-package.mjs` looks for it and
+#   where an operator can inspect the page the shell really ships.
+#
+# The overlay page and the icons are extra resources only: nothing resolves them relative to the archive's own
+# root, and the tray and the capture window read them from the application directory at run time.
+
+appId: dev.lectern.desktop
+productName: Lectern
+
+directories:
+  output: dist
+
+files:
+  - out/**
+  - from: resources
+    to: resources
+  # Nothing from `node_modules` ships. Every dependency the shell uses is already inside `out/main/index.js`
+  # (the main bundle is built with `externalizeDeps: false`), and electron-builder would otherwise copy the whole
+  # production dependency tree — measured before this line existed: 5 018 files and 194 MB, including
+  # `pdf.worker.mjs.map`, which is a source map and must never ship. A negated pattern is also what gives the
+  # node-module copier a filter at all (`getNodeModuleFileMatcher` collects only negations, and an unfiltered
+  # copier copies everything).
+  - "!node_modules/**"
+
+extraResources:
+  - from: resources/web
+    to: web
+  - from: resources/overlay
+    to: overlay
+  - from: resources/icons
+    to: icons
+
+linux:
+  target:
+    - AppImage
+    - deb
+  category: Utility
+  # The unpacked executable's name, stated rather than derived. electron-builder would otherwise take it from the
+  # package *name*, and this package is scoped: `sanitizeFileName("@lectern/desktop")` is `@lecterndesktop`, which
+  # app-builder refuses to use in a file path (measured: `executableName contains characters that cannot be safely
+  # used in file paths`). `lectern` is also the name the `.desktop` file's `Exec=` line carries.
+  executableName: lectern
+  # The `.deb`'s maintainer. Without it the target reads `author` out of the application's `package.json`, and
+  # refuses to build when that author carries no address (measured: `It is required to set Linux .deb package
+  # maintainer`). This is the project's own identity, at a domain that cannot resolve.
+  maintainer: Lectern Executor <executor@lectern.invalid>
+  # The installed `.desktop` file is named after `desktopName` in `package.json`, so it matches the shell's own
+  # window class. It is also the name the GlobalShortcuts portal uses for a Wayland session (F§10.3).
+  syncDesktopName: true
+
+deb:
+  # The package's own name, so the installed package is `lectern` rather than the workspace-scoped name.
+  packageName: lectern
+  # And the file's name, for the same reason: the target's default pattern starts with `${name}`, which for this
+  # package is `@lectern/desktop` — the slash turns into a directory inside `dist`, and fpm then refuses to write
+  # into a directory that does not exist (measured: `Parent directory does not exist: …/dist/@lectern`). The
+  # AppImage already names itself from `productName`, so the `.deb` does the same.
+  artifactName: "${productName}_${version}_${arch}.${ext}"
+
+win:
+  target:
+    - nsis
+
+nsis:
+  # A per-user install: the installer writes into the user's own profile and never asks for elevation.
+  perMachine: false
+  allowElevation: false
