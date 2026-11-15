@@ -18,8 +18,6 @@
     "@lectern/core": "workspace:*",
     "@lectern/ui-web": "workspace:*",
     "chokidar": "6.0.0",
-    "electron": "45.3.1",
-    "electron-builder": "26.18.0",
     "electron-vite": "6.0.0",
     "zod": "4.6.7"
   },
@@ -27,27 +25,9 @@
     "@lectern/fixtures": "workspace:*",
     "@lectern/server": "workspace:*",
     "@playwright/test": "1.65.0",
-    "vitest": "5.1.0"
+    "vitest": "5.1.0",
+    "electron": "45.3.1",
+    "electron-builder": "26.18.0"
   },
-  "build": {
-    "appId": "dev.lectern.desktop",
-    "productName": "Lectern",
-    "files": [
-      "out/**",
-      "resources/**",
-      "package.json"
-    ],
-    "linux": {
-      "target": [
-        "AppImage",
-        "deb"
-      ],
-      "category": "AudioVideo"
-    },
-    "win": {
-      "target": [
-        "nsis"
-      ]
-    }
-  }
+  "homepage": "https://lectern.local"
 }

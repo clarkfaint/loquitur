@@ -1883,6 +1883,7 @@ Pass: exit code 0 for packaging and the full desktop end-to-end suite. Record `w
 # Phase 4 — Android Mobile App
 
 Phase 4 needs `node scripts/preflight.mjs --phase 4` to pass (JDK 17+, Android SDK, `adb`). Units U-052 and U-053 also need a running emulator or attached device with Google Play services; on a host without one they are `BLOCKED`, never passed.
+- Patch scope: apps/desktop/package.json
 
 ### U-045 — Android: Expo scaffold, connection settings, diagnostics
 
