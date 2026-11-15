@@ -8,6 +8,7 @@
  */
 
 import { type ContentContext, installReadingSession } from "./reading-session";
+import { installSelectionFeature } from "./selection-feature";
 import { installWidget } from "./widget/mount";
 
 /** Every feature the content script installs, in order. */
@@ -21,3 +22,8 @@ contentFeatures.push(installReadingSession);
 // when the settings ask for it and mounted whenever it is the widget that starts a reading. It is installed
 // after the reading session because both listen for `ext/snapshot`, and the session is the one that paints.
 contentFeatures.push(installWidget);
+
+// U-037's one. The reader's own selection as a reading, and the widget's error state: it acts on the messages
+// the two features above answer without answering any itself, and it is installed last so the widget it may
+// draw an error into is already offered on the page.
+contentFeatures.push(installSelectionFeature);

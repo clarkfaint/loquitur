@@ -7,7 +7,10 @@
  * its function here, and `background.ts` runs whatever the array holds.
  */
 
+import { installCommands } from "./commands";
+import { installContextMenu } from "./context-menu";
 import { installOffscreenBridge } from "./offscreen";
+import { installPdfHandoff } from "./pdf-handoff";
 import { installReadActiveTab } from "./read-active-tab";
 import { installReadingSession } from "./session";
 
@@ -22,3 +25,8 @@ features.push(installOffscreenBridge, installReadingSession);
 // U-035's. It registers `ext/read-active-tab` and binds the `read-page` shortcut to the same request, so a
 // reading starts from the popup's button or from the keyboard and arrives in the content script the same way.
 features.push(installReadActiveTab);
+
+// U-037's three. The context menu and the keyboard commands are installers rather than registrations, and the
+// PDF hand-off adds its own handler to the registry; all three go last, because a menu click and a player
+// shortcut both act through the session the two features above installed.
+features.push(installContextMenu, installCommands, installPdfHandoff);
