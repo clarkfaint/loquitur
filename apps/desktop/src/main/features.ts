@@ -15,9 +15,10 @@
 import type { MainContext } from "./context";
 import { shellFeatures } from "./features/shell-features";
 import { registerGlobalHotkeys } from "./hotkeys";
+import { readSelectionFeature } from "./selection/read-selection";
 
 /** One feature: given the shell's context, register what it owns and return. */
 export type ShellFeature = (ctx: MainContext) => void;
 
 /** Every registered feature, in the order they run. */
-export const features: ShellFeature[] = [shellFeatures, registerGlobalHotkeys];
+export const features: ShellFeature[] = [shellFeatures, registerGlobalHotkeys, readSelectionFeature];
