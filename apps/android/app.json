@@ -1,0 +1,35 @@
+{
+  "expo": {
+    "name": "Lectern",
+    "slug": "lectern",
+    "scheme": "lectern",
+    "version": "0.0.0",
+    "platforms": ["android"],
+    "icon": "./assets/1024.png",
+    "android": {
+      "package": "dev.lectern.app",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/432.png",
+        "backgroundColor": "#1d3557"
+      },
+      "blockedPermissions": [
+        "android.permission.RECORD_AUDIO",
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.WRITE_EXTERNAL_STORAGE",
+        "android.permission.SYSTEM_ALERT_WINDOW"
+      ]
+    },
+    "plugins": [
+      "expo-router",
+      "expo-secure-store",
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "usesCleartextTraffic": true
+          }
+        }
+      ]
+    ]
+  }
+}
