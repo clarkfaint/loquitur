@@ -1,0 +1,52 @@
+{
+  "name": "@lectern/desktop",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "main": "out/main/index.js",
+  "desktopName": "dev.lectern.desktop.desktop",
+  "scripts": {
+    "build": "node scripts/copy-web.mjs && electron-vite build",
+    "dev": "electron-vite dev",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "e2e": "playwright test",
+    "dist:linux": "electron-builder --linux AppImage deb",
+    "dist:win": "electron-builder --win nsis"
+  },
+  "dependencies": {
+    "@lectern/core": "workspace:*",
+    "@lectern/ui-web": "workspace:*",
+    "electron": "45.3.1",
+    "electron-builder": "26.18.0",
+    "electron-vite": "6.0.0",
+    "zod": "4.6.7"
+  },
+  "devDependencies": {
+    "@lectern/fixtures": "workspace:*",
+    "@lectern/server": "workspace:*",
+    "@playwright/test": "1.65.0",
+    "vitest": "5.1.0"
+  },
+  "build": {
+    "appId": "dev.lectern.desktop",
+    "productName": "Lectern",
+    "files": [
+      "out/**",
+      "resources/**",
+      "package.json"
+    ],
+    "linux": {
+      "target": [
+        "AppImage",
+        "deb"
+      ],
+      "category": "AudioVideo"
+    },
+    "win": {
+      "target": [
+        "nsis"
+      ]
+    }
+  }
+}
