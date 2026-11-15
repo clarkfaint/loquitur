@@ -12,6 +12,7 @@
  * rather than part of the shell is the player's own controls, which U-039 adds here.
  */
 
+import { captureRegionFeature } from "./capture/capture-region";
 import type { MainContext } from "./context";
 import { shellFeatures } from "./features/shell-features";
 import { registerGlobalHotkeys } from "./hotkeys";
@@ -21,4 +22,4 @@ import { readSelectionFeature } from "./selection/read-selection";
 export type ShellFeature = (ctx: MainContext) => void;
 
 /** Every registered feature, in the order they run. */
-export const features: ShellFeature[] = [shellFeatures, registerGlobalHotkeys, readSelectionFeature];
+export const features: ShellFeature[] = [shellFeatures, registerGlobalHotkeys, readSelectionFeature, captureRegionFeature];

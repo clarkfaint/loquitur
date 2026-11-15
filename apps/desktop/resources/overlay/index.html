@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Lectern — select a region to read</title>
+    <style>
+      /*
+        The whole page is the display, and the whole page is the selection surface: a dim over everything, a
+        crosshair for a cursor, and one rectangle that is drawn as the pointer moves. Nothing here is a control —
+        an overlay that is only ever up for one drag has no other furniture — and the dim is what tells the
+        operator that the application underneath is being looked at rather than used.
+      */
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        background-color: rgba(12, 14, 18, 0.35);
+        cursor: crosshair;
+        user-select: none;
+      }
+
+      /* The selection: brighter than the dim around it, with an edge that is readable over any content. */
+      #region {
+        position: fixed;
+        left: 0;
+        top: 0;
+        width: 0;
+        height: 0;
+        border: 1px solid rgba(255, 255, 255, 0.9);
+        background-color: rgba(255, 255, 255, 0.08);
+        box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.45);
+        pointer-events: none;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="region"></div>
+    <script src="./overlay.js"></script>
+  </body>
+</html>
