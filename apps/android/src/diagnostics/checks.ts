@@ -10,6 +10,7 @@
  * returned as `ok: false` with a sentence the reader can act on.
  */
 
+import { audioChecks } from "../audio/diagnostics";
 import { createClient, getConnection } from "../connection";
 import { runCoreSelfTest } from "../selftest";
 import { storeChecks } from "../stores/diagnostics";
@@ -72,4 +73,4 @@ const hubHealth: DiagnosticCheck = {
 };
 
 /** Every registered check, in the order the diagnostics screen runs them. */
-export const checks: DiagnosticCheck[] = [coreSelfTest, hubHealth, ...storeChecks];
+export const checks: DiagnosticCheck[] = [coreSelfTest, hubHealth, ...storeChecks, ...audioChecks];
