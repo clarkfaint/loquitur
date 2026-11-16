@@ -16,6 +16,11 @@
  *
  * The screen reads the store again every time it comes into focus, so a document imported on the import screen
  * is in the list by the time the reader is back.
+ *
+ * Every row also carries F§10.1's offline control beside it, and that control is a view of the same store:
+ * whether a document has a pack is a `setting` record rather than something the screen remembers, so the
+ * control reads it when the row appears and again after every action it takes. It is a sibling of the row's
+ * own pressable, so a thumb on "Offline" cannot open the reader.
  */
 
 import {
@@ -33,6 +38,7 @@ import { useFocusEffect, useRouter } from "expo-router";
 import { useCallback, useMemo, useState } from "react";
 import { ActivityIndicator, FlatList, Modal, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import { anchorsKey, originalKey } from "../../src/import/import-service";
+import { OfflineButton } from "../../src/offline/OfflineButton";
 import { getStores } from "../../src/stores";
 import { radius, type Theme, useTheme } from "../../src/theme";
 
@@ -193,19 +199,25 @@ export default function LibraryScreen() {
 
   const renderItem = useCallback(
     ({ item }: { item: DocumentMeta }) => (
-      <Pressable
-        style={styles.row}
-        onPress={() => router.push(`/read/${item.docId}`)}
-        onLongPress={() => openSheet(item)}
-        accessibilityRole="button"
-        accessibilityLabel={item.title}
-        testID={`document-${item.docId}`}
-      >
-        <Text style={styles.rowTitle} numberOfLines={2}>
-          {item.title}
-        </Text>
-        <Text style={styles.rowMeta}>{`${asPercent(snapshot.progress[item.docId] ?? 0)} read · ${item.wordCount} words`}</Text>
-      </Pressable>
+      // The row's own pressable is unchanged — a tap opens the reader, a long press opens the sheet — and
+      // F§10.1's offline control sits beside it rather than inside it, so a thumb on "Offline" cannot open the
+      // reader and the accessibility tree keeps the control its own node.
+      <View style={styles.row}>
+        <Pressable
+          style={styles.rowMain}
+          onPress={() => router.push(`/read/${item.docId}`)}
+          onLongPress={() => openSheet(item)}
+          accessibilityRole="button"
+          accessibilityLabel={item.title}
+          testID={`document-${item.docId}`}
+        >
+          <Text style={styles.rowTitle} numberOfLines={2}>
+            {item.title}
+          </Text>
+          <Text style={styles.rowMeta}>{`${asPercent(snapshot.progress[item.docId] ?? 0)} read · ${item.wordCount} words`}</Text>
+        </Pressable>
+        <OfflineButton docId={item.docId} title={item.title} />
+      </View>
     ),
     [openSheet, router, snapshot.progress, styles],
   );
@@ -446,6 +458,7 @@ function createStyles(theme: Theme) {
       gap: theme.spacing.one,
       padding: theme.spacing.three,
     },
+    rowMain: { gap: theme.spacing.one },
     rowTitle: { color: theme.colors.ink, fontSize: theme.type.body, fontWeight: "600" },
     rowMeta: { color: theme.colors.inkMuted, fontSize: theme.type.caption },
     backdrop: { backgroundColor: theme.colors.ink, bottom: 0, left: 0, opacity: 0.35, position: "absolute", right: 0, top: 0 },

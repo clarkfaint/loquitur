@@ -1,0 +1,310 @@
+#!/bin/sh
+# The offline check (U-053, F§10.4, F§10.1).
+#
+# What F§10.1 and F§10.4 promise together is that a document downloaded for offline use can be read with no hub
+# reachable at all. This script takes the reader through exactly that and reads the app's own answer at every
+# step:
+#
+#   1. the document the share-intent check created is found in the library and downloaded through the library
+#      row's own control, and the row is required to reach the `complete` state;
+#   2. airplane mode is enabled (`cmd connectivity airplane-mode enable`, the contract's own command) and the
+#      hub is stopped — which also takes the `adb reverse` that is the app's only route to it;
+#   3. the app is force-stopped and reopened, and the document is opened and played from the library;
+#   4. the platform's media session is required to be `playing` 20 s after the tap, with the sentence the
+#      session publishes having advanced: F§10.4 has the app publish the document's title and the sentence now
+#      playing, so that line is the visible sentence's own report;
+#   5. airplane mode is disabled again on every exit path, including a failure and an interrupt.
+#
+# Airplane mode and this harness's transport are the one measured conflict, and it is why step 2 is written the
+# way it is: the device is attached over Wi-Fi (`adb devices -l` lists a network transport and `lsusb` shows no
+# Android device), and enabling airplane mode takes Wi-Fi down with it, so the transport that would read the
+# device dies about three seconds later (measured at U-053: `error: device offline`, then `ping` 100% packet
+# loss, then `adb connect` → `No route to host`). So the device is told, *before* the toggle, to bring its own
+# Wi-Fi back up a few seconds after it — and to leave airplane mode by itself if this script never reaches the
+# end, because a phone that cannot be reached cannot be un-set from the host. Airplane mode stays on
+# (`airplane_mode_on` is read back and reported), the hub stays stopped and the reverse stays gone, so the app
+# is offline with respect to its hub, which is the thing being proved.
+#
+# Nothing here changes a system setting beyond airplane mode, which is put back; the app is left installed and
+# connected, the hub process and the port reverse are taken down, and no file is written outside
+# `data/device-run/` (AGENTS.md §7).
+#
+# Usage: sh apps/android/scripts/device/verify-offline.sh   (it starts and stops its own hub; the document and
+#        the saved connection come from the run the contract's order puts before it)
+
+. "$(dirname -- "$0")/lib.sh"
+
+# The contract's own numbers, in seconds.
+PLAY_TIMEOUT=20
+OFFLINE_SECONDS=20
+
+# How long the download may take, how long the device may take to answer adb again after its radio returns, how
+# long the device waits before it brings its own Wi-Fi back, and when it gives up on airplane mode by itself.
+DOWNLOAD_BUDGET=300
+TRANSPORT_BUDGET=90
+WIFI_RETURN_SECONDS=6
+AIRPLANE_BACKSTOP_SECONDS=300
+
+hub_started=0
+airplane_entered=0
+
+# --- the screen, narrowed to one node ----------------------------------------
+
+# The first node whose *drawn text* carries the wanted string, as a `ui_nodes` line. A row's title is text; a
+# control's label is `content-desc`, and the two are asked for separately so that a document's title can never
+# be confused with the offline control that sits beside it.
+node_with_text() {
+  ui_nodes | awk -F'\t' -v want="$1" 'index($1, want) > 0 { print; exit }'
+}
+
+# The first node whose *accessibility label* carries the wanted string. The offline control's label is
+# `Download <title> for offline`, which is how this script finds the button belonging to the shared document
+# rather than whichever row happens to come first in the list.
+node_with_label() {
+  ui_nodes | awk -F'\t' -v want="$1" 'index($2, want) > 0 { print; exit }'
+}
+
+# `wait_for_node <finder> <string> <seconds>` — poll until one of the two finders above answers. A device paints
+# at its own pace and a dump is a round trip, so this is a poll rather than a sleep followed by one look.
+wait_for_node() {
+  finder=$1
+  want=$2
+  seconds=$3
+  waited=0
+  while [ "$waited" -lt "$seconds" ]; do
+    if [ -n "$("$finder" "$want")" ]; then
+      note "wait_for_node: \"$want\" is on the screen after ${waited}s"
+      return 0
+    fi
+    sleep 3
+    waited=$((waited + 3))
+  done
+  fail "wait_for_node: \"$want\" never appeared within ${seconds}s"
+  return 1
+}
+
+# `tap_node <line>` — press the centre of the rectangle a `ui_nodes` line reports. The centre comes from the
+# node's own bounds, so the tap lands wherever the device laid the control out.
+tap_node() {
+  line=$1
+  bounds=$(printf '%s\n' "$line" | cut -f3)
+  coords=$(printf '%s' "$bounds" | tr -c '0-9' ' ')
+  # Word splitting is the point: the four numbers of "[x1,y1][x2,y2]" become the positional parameters.
+  # shellcheck disable=SC2086
+  set -- $coords
+  if [ "$#" -ne 4 ]; then
+    fail "tap_node: cannot read a rectangle out of \"$bounds\""
+    return 1
+  fi
+  x=$((($1 + $3) / 2))
+  y=$((($2 + $4) / 2))
+  if ! "$ADB" shell input tap "$x" "$y" >/dev/null 2>&1; then
+    fail "tap_node: input tap $x $y failed"
+    return 1
+  fi
+  note "tap_node: pressed at $x,$y"
+}
+
+# `tap_found <finder> <string>` — find one node and press it.
+tap_found() {
+  line=$("$1" "$2") || true
+  if [ -z "$line" ]; then
+    fail "tap_found: no node carries \"$2\""
+    return 1
+  fi
+  tap_node "$line"
+}
+
+# --- the media session --------------------------------------------------------
+
+# The sentence the session publishes: F§10.4 has the app hand the document's title and the sentence now playing
+# to the lock screen, and that line is the second one the platform prints. How the platform prints it was
+# measured on this device (U-052): `dumpsys media_session` writes the metadata positionally —
+# `metadata: size=4, <the document's title>, <the sentence now playing>, null` — and not as `artist=…`, so the
+# keyed form is read when it is there and the positional one when it is not. (The same two readers live in
+# `verify-media-session.sh`; `lib.sh` carries the media *state* readers and is U-052's frozen file.)
+sentence_of() {
+  line=$1
+  keyed=$(printf '%s' "$line" | sed -n 's/.*artist=\([^,}]*\).*/\1/p')
+  if [ -n "$keyed" ]; then
+    printf '%s\n' "$keyed" | sed 's/^[[:space:]]*//; s/[[:space:]]*$//'
+    return 0
+  fi
+  printf '%s' "$line" | sed 's/^[^:]*: *//' | awk -F', ' '{ print $3 }' | sed 's/^[[:space:]]*//; s/[[:space:]]*$//'
+}
+
+# --- the radio ----------------------------------------------------------------
+
+# `wait_for_transport <seconds>` — the device answers adb again. Enabling airplane mode takes the only transport
+# this host has, so after the toggle the script waits for the device to come back, reconnecting by address when
+# the device was attached that way.
+wait_for_transport() {
+  seconds=$1
+  waited=0
+  while [ "$waited" -lt "$seconds" ]; do
+    if [ "$("$ADB" get-state 2>/dev/null | tr -d '\r')" = "device" ]; then
+      note "wait_for_transport: the device answers again after ${waited}s"
+      return 0
+    fi
+    case "${ANDROID_SERIAL:-}" in
+      *:*)
+        "$ADB" connect "$ANDROID_SERIAL" >/dev/null 2>&1 || true
+        ;;
+    esac
+    sleep 3
+    waited=$((waited + 3))
+  done
+  fail "wait_for_transport: the device did not answer within ${seconds}s — its own backstop will leave airplane mode in ${AIRPLANE_BACKSTOP_SECONDS}s"
+  return 1
+}
+
+# Whatever happens from here on — a failure, an interrupt, the end of the script — airplane mode goes off and
+# the radios come back, and the hub this script started is stopped. The device-side backstop scheduled below is
+# the second line of defence for the case this script cannot run a command at all.
+restore() {
+  if [ "$airplane_entered" -eq 1 ]; then
+    note "restore: leaving airplane mode"
+    "$ADB" shell cmd connectivity airplane-mode disable >/dev/null 2>&1 || true
+    "$ADB" shell cmd wifi set-wifi-enabled enabled >/dev/null 2>&1 || true
+    "$ADB" shell svc wifi enable >/dev/null 2>&1 || true
+  fi
+  if [ "$hub_started" -eq 1 ]; then
+    hub_started=0
+    if ! stop_hub; then
+      fail "restore: stop_hub could not confirm the hub is gone"
+    fi
+  fi
+}
+trap restore EXIT INT TERM
+
+require_device || exit 1
+
+# 1. The document the share-intent check created, downloaded through the library row's own control.
+start_hub || exit 1
+hub_started=1
+
+opened=0
+attempt=1
+while [ "$attempt" -le 3 ] && [ "$opened" -eq 0 ]; do
+  note "verify-offline: opening the library (attempt $attempt of 3)"
+  "$ADB" shell am force-stop "$PACKAGE" >/dev/null 2>&1
+  if [ "$attempt" -eq 1 ]; then
+    # The launcher's own start: the entry route reads the saved connection and sends a configured reader to the
+    # library, which is the path a reader who taps the icon takes.
+    "$ADB" shell am start -n "$PACKAGE/.MainActivity" >/dev/null 2>&1 || true
+  else
+    open_link "lectern://library" || true
+  fi
+  if wait_for_node node_with_text "$SHARE_HEAD" 40; then
+    opened=1
+  fi
+  attempt=$((attempt + 1))
+done
+if [ "$opened" -eq 0 ]; then
+  fail "verify-offline: the library never showed the document the share-intent check created (\"$SHARE_HEAD\")"
+  exit 1
+fi
+
+note "verify-offline: downloading the shared document for offline use through its row's own control"
+tap_found node_with_label "Download $SHARE_HEAD" || exit 1
+
+if ! wait_for_node node_with_text "Ready offline" "$DOWNLOAD_BUDGET"; then
+  fail "verify-offline: the row never reached the complete state within ${DOWNLOAD_BUDGET}s — what is on the screen:"
+  ui_nodes | awk -F'\t' '$1 != "" { print "  " $1 }' | head -20 >&2
+  exit 1
+fi
+note "verify-offline: the document downloaded and the library row says it is ready offline"
+
+# 2. Airplane mode, and the hub goes away.
+note "verify-offline: telling the device to bring its own Wi-Fi back ${WIFI_RETURN_SECONDS}s from now, and to leave airplane mode on its own in ${AIRPLANE_BACKSTOP_SECONDS}s"
+"$ADB" shell "nohup sh -c 'sleep $WIFI_RETURN_SECONDS; cmd wifi set-wifi-enabled enabled' >/dev/null 2>&1 &" >/dev/null 2>&1 || true
+"$ADB" shell "nohup sh -c 'sleep $AIRPLANE_BACKSTOP_SECONDS; cmd connectivity airplane-mode disable; cmd wifi set-wifi-enabled enabled' >/dev/null 2>&1 &" >/dev/null 2>&1 || true
+
+note "verify-offline: cmd connectivity airplane-mode enable"
+airplane_entered=1
+"$ADB" shell cmd connectivity airplane-mode enable >/dev/null 2>&1 || true
+
+wait_for_transport "$TRANSPORT_BUDGET" || exit 1
+
+airplane=$("$ADB" shell settings get global airplane_mode_on 2>/dev/null | tr -d '\r')
+if [ "$airplane" != "1" ]; then
+  fail "verify-offline: airplane_mode_on is \"$airplane\" after cmd connectivity airplane-mode enable"
+  exit 1
+fi
+note "verify-offline: airplane mode is on (airplane_mode_on=$airplane) and the harness is attached again"
+
+note "verify-offline: stopping the hub — the port reverse it is reached through goes with it"
+stop_hub || exit 1
+hub_started=0
+
+# 3. The app is force-stopped and reopened, with no hub to reach.
+note "verify-offline: force-stopping $PACKAGE and reopening it with the hub stopped"
+"$ADB" shell am force-stop "$PACKAGE" >/dev/null 2>&1
+
+reopened=0
+attempt=1
+while [ "$attempt" -le 3 ] && [ "$reopened" -eq 0 ]; do
+  "$ADB" shell am start -n "$PACKAGE/.MainActivity" >/dev/null 2>&1 || true
+  if wait_for_node node_with_text "$SHARE_HEAD" 40; then
+    reopened=1
+  fi
+  attempt=$((attempt + 1))
+done
+if [ "$reopened" -eq 0 ]; then
+  fail "verify-offline: the library never came back with the document after the app was reopened"
+  exit 1
+fi
+
+note "verify-offline: opening the document in the reader"
+tap_found node_with_text "$SHARE_HEAD" || exit 1
+
+wait_for_tappable "Play" 90 || {
+  fail "verify-offline: the reader's play control never became pressable with the hub stopped"
+  exit 1
+}
+tap_text "Play" || exit 1
+
+# 4. The reading is `playing`, and stays playing, with nothing to reach.
+state=$(wait_for_media_state playing "$PLAY_TIMEOUT") || {
+  fail "verify-offline: the session is $state ${PLAY_TIMEOUT}s after the tap, with the hub stopped and airplane mode on"
+  media_metadata >&2 || true
+  exit 1
+}
+note "verify-offline: $state within ${PLAY_TIMEOUT}s of the tap, with the hub stopped and airplane mode on"
+
+sentence_before=$(sentence_of "$(media_metadata)")
+sleep "$OFFLINE_SECONDS"
+state=$(media_state) || exit 1
+if [ "$state" != "playing" ]; then
+  fail "verify-offline: the session is $state ${OFFLINE_SECONDS}s after it started playing offline"
+  media_metadata >&2 || true
+  exit 1
+fi
+note "verify-offline: still $state ${OFFLINE_SECONDS}s later, with airplane mode on and no hub running"
+
+sentence_after=$(sentence_of "$(media_metadata)")
+if [ -z "$sentence_before" ] || [ -z "$sentence_after" ]; then
+  fail "verify-offline: the session published no sentence (before: \"$sentence_before\", after: \"$sentence_after\")"
+  media_metadata >&2 || true
+  exit 1
+fi
+if [ "$sentence_after" = "$sentence_before" ]; then
+  fail "verify-offline: the sentence did not advance while offline — \"$sentence_before\" both times"
+  exit 1
+fi
+note "verify-offline: the sentence advanced while offline — \"$sentence_before\" → \"$sentence_after\""
+
+# 5. Airplane mode goes off (the trap does it too, on every other path), and the device is left as it was.
+airplane_entered=0
+note "verify-offline: disabling airplane mode"
+"$ADB" shell cmd connectivity airplane-mode disable >/dev/null 2>&1 || true
+"$ADB" shell cmd wifi set-wifi-enabled enabled >/dev/null 2>&1 || true
+wait_for_transport "$TRANSPORT_BUDGET" || exit 1
+airplane=$("$ADB" shell settings get global airplane_mode_on 2>/dev/null | tr -d '\r')
+if [ "$airplane" != "0" ]; then
+  fail "verify-offline: airplane_mode_on is \"$airplane\" after cmd connectivity airplane-mode disable"
+  exit 1
+fi
+note "verify-offline: airplane mode is off again (airplane_mode_on=$airplane)"
+
+note "verify-offline: the document was prepared offline, and it played for ${OFFLINE_SECONDS}s with airplane mode on, no hub running and the sentence advancing"
