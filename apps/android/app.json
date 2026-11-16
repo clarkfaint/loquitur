@@ -4,7 +4,9 @@
     "slug": "lectern",
     "scheme": "lectern",
     "version": "0.0.0",
-    "platforms": ["android"],
+    "platforms": [
+      "android"
+    ],
     "icon": "./assets/1024.png",
     "android": {
       "package": "dev.lectern.app",
@@ -15,9 +17,14 @@
       "blockedPermissions": [
         "android.permission.READ_EXTERNAL_STORAGE",
         "android.permission.WRITE_EXTERNAL_STORAGE",
-        "android.permission.SYSTEM_ALERT_WINDOW"
+        "android.permission.SYSTEM_ALERT_WINDOW",
+        "android.permission.MODIFY_AUDIO_SETTINGS",
+        "android.permission.USE_BIOMETRIC",
+        "android.permission.USE_FINGERPRINT"
       ],
-      "permissions": ["android.permission.CAMERA"]
+      "permissions": [
+        "android.permission.CAMERA"
+      ]
     },
     "plugins": [
       "expo-router",
@@ -51,7 +58,9 @@
               "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
               "image/*"
             ],
-            "multipleShareMimeTypes": ["image/*"]
+            "multipleShareMimeTypes": [
+              "image/*"
+            ]
           }
         }
       ],
