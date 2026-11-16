@@ -9,7 +9,9 @@
 #      row's own control, and the row is required to reach the `complete` state;
 #   2. airplane mode is enabled (`cmd connectivity airplane-mode enable`, the contract's own command) and the
 #      hub is stopped — which also takes the `adb reverse` that is the app's only route to it;
-#   3. the app is force-stopped and reopened, and the document is opened and played from the library;
+#   3. the app is force-stopped and reopened, and the document is opened from the library and rewound to its
+#      start — F§5.9 keeps the reader's place, and the checks this one follows read the document to near its end,
+#      so a Play where the reader opens would have only a few seconds to observe; the document is then played;
 #   4. the platform's media session is required to be `playing` 20 s after the tap, with the sentence the
 #      session publishes having advanced: F§10.4 has the app publish the document's title and the sentence now
 #      playing, so that line is the visible sentence's own report;
@@ -37,6 +39,12 @@
 # The contract's own numbers, in seconds.
 PLAY_TIMEOUT=20
 OFFLINE_SECONDS=20
+
+# How many sentences the reader's own transport may be asked to step back, and the percentage at or below which
+# the reading counts as being at the document's start (the reader prints whole percent, so the last sentence of a
+# document steps back to 0).
+REWIND_STEPS=24
+START_PERCENT=3
 
 # How long the download may take, how long the device may take to answer adb again after its radio returns, how
 # long the device waits before it brings its own Wi-Fi back, and when it gives up on airplane mode by itself.
@@ -113,6 +121,35 @@ tap_found() {
     return 1
   fi
   tap_node "$line"
+}
+
+# --- where the reading is -----------------------------------------------------
+
+# `reader_percent` — the reader's own progress figure, as a number. Its player bar prints one (`<n>%`) from the
+# same fraction F§5.6(f) reports, so this asks the app where the reading is rather than guessing from a tap.
+reader_percent() {
+  line=$(ui_nodes | awk -F'\t' '$1 ~ /%$/ { print; exit }')
+  printf '%s' "$line" | cut -f1 | tr -dc '0-9'
+}
+
+# `rewind_to_start` — press the reader's own "Previous sentence" control until the bar reports the document's
+# start. That control is F§10.4's skip of −1 sentence, so each press moves the reading one sentence back, and the
+# condition is the bar's own figure — a reading that does not move is reported as a failure rather than waited
+# out. It is bounded for that same reason: a control that answers nothing must not become an endless tap.
+rewind_to_start() {
+  steps=0
+  while [ "$steps" -lt "$REWIND_STEPS" ]; do
+    percent=$(reader_percent)
+    if [ -n "$percent" ] && [ "$percent" -le "$START_PERCENT" ]; then
+      note "rewind_to_start: the reading is at ${percent}%, ${steps} sentence(s) back from where it opened"
+      return 0
+    fi
+    tap_found node_with_label "Previous sentence" || return 1
+    sleep 2
+    steps=$((steps + 1))
+  done
+  fail "rewind_to_start: the reading is still at $(reader_percent)% after ${steps} sentence(s) back"
+  return 1
 }
 
 # --- the media session --------------------------------------------------------
@@ -257,6 +294,14 @@ fi
 
 note "verify-offline: opening the document in the reader"
 tap_found node_with_text "$SHARE_HEAD" || exit 1
+
+# The reading must have somewhere to go, and where the reader opens is not it: F§5.9 keeps the reader's place, the
+# checks that ran before this one read this document to near its end, and the reader therefore opens near its end,
+# where a Play has only a few seconds left to observe. The position this check reads from is the document's start
+# — which is also where a reader who has just prepared a document for offline use is, having never heard it — so
+# the reading is stepped back there with the reader's own transport, off the hub that is now stopped.
+note "verify-offline: rewinding the reading to the document's start (F§5.9 keeps the reader's place)"
+rewind_to_start || exit 1
 
 wait_for_tappable "Play" 90 || {
   fail "verify-offline: the reader's play control never became pressable with the hub stopped"
