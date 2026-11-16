@@ -12,39 +12,17 @@
  * cannot overwrite another's — arrives with `apps/android/src/stores`, and a second place to keep them before
  * that would be a second thing to migrate.
  *
- * The tab's own title and icon are set from this file (U-045's `(tabs)/_layout.tsx` carries no per-screen
- * entry): the mark is Lectern's own three bars, the same shape the app icon draws.
+ * The tab's own title and mark are the group layout's (`(tabs)/_layout.tsx`, over `src/tabs/marks`), not this
+ * file's: a tab navigator draws every label and mark, not only this screen's, so the layout is the one place
+ * that can name them all.
  */
 
 import { clampRate, RATE_MAX, RATE_MIN, RATE_PRESETS, RATE_STEP } from "@lectern/core";
-import { Link, Tabs } from "expo-router";
+import { Link } from "expo-router";
 import { useEffect, useMemo, useState } from "react";
-import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Switch, Text, TextInput, View, type ViewStyle } from "react-native";
+import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Switch, Text, TextInput, View } from "react-native";
 import { type Connection, createClient, getConnection, onConnectionChanged, setConnection } from "../../src/connection";
 import { radius, type Theme, useTheme } from "../../src/theme";
-
-/**
- * The colour a React Native style accepts for a property — which is what a tab navigator hands its icon:
- * `ViewStyle["backgroundColor"]` without its `undefined`, quoting the installed `react-native@0.88.1`
- * (`types_generated/Libraries/StyleSheet/StyleSheetTypes.d.ts`).
- */
-type MarkColor = NonNullable<ViewStyle["backgroundColor"]>;
-
-/** Lectern's tab mark: the icon's three bars, of decreasing width. */
-function SettingsMark({ color }: { color: MarkColor | null }) {
-  return (
-    <View style={markStyle.box}>
-      <View style={[markStyle.bar, { backgroundColor: color, width: 18 }]} />
-      <View style={[markStyle.bar, { backgroundColor: color, width: 13 }]} />
-      <View style={[markStyle.bar, { backgroundColor: color, width: 8 }]} />
-    </View>
-  );
-}
-
-const markStyle = StyleSheet.create({
-  box: { width: 18, height: 18, justifyContent: "center", gap: 3 },
-  bar: { height: 3, borderRadius: 2 },
-});
 
 /** One rate, snapped onto F§5.6(e)'s 0.05 step and held inside its range. */
 function snapRate(value: number): number {
@@ -104,13 +82,6 @@ export default function SettingsScreen() {
 
   return (
     <ScrollView style={styles.page} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
-      <Tabs.Screen
-        options={{
-          title: "Settings",
-          tabBarIcon: ({ color }: { color: MarkColor | null }) => <SettingsMark color={color} />,
-        }}
-      />
-
       <Text style={styles.heading}>Hub</Text>
       <Text style={styles.hint}>{stored === null ? "No hub is configured yet." : `Saved: ${stored.hubUrl}`}</Text>
 

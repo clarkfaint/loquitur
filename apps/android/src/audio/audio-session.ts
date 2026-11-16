@@ -3,10 +3,21 @@
  *
  * Two declarations belong to the app rather than to a sink, and both are made once per run:
  *
- * - `configureAudioSession()` sets F§10.4's mode: audio keeps playing while the app is in the background, and
- *   the session does not mix — a reader's audio pauses for a phone call instead of talking over it. The
- *   platform's own defaults for everything else are the ones Lectern wants (silent mode still plays, nothing
- *   is routed to the earpiece, recording is off), so only these two are named.
+ * - `configureAudioSession()` sets F§10.4's mode: audio keeps playing while the app is in the background, it does
+ *   not mix — a reader's audio pauses for a phone call instead of talking over it — and it *plays in silent
+ *   mode*. The platform's own defaults are the ones Lectern wants for everything else (nothing is routed to the
+ *   earpiece, recording is off), so only those three are named.
+ *
+ * **`playsInSilentMode` has to be named, and that is not a style choice.** The module's Android mode record
+ * declares `playsInSilentMode = true`, but its JavaScript wrapper builds the record with *every* field and fills
+ * in the ones a caller left out as `undefined`, so the platform sees a field that is present-and-false rather
+ * than an absent one and takes its default. Measured on the device: with `playsInSilentMode` omitted, the module
+ * refuses to start playback at all — `playWithAudioFocus` returns before touching the player whenever
+ * `playsInSilentMode` is false *and* the platform's ringer mode is not `RINGER_MODE_NORMAL` — which is exactly
+ * the state a phone in Do Not Disturb is in: `AudioManager.getRingerMode()` answers the *external* ringer mode,
+ * which Zen mode reports as `SILENT` even though the device's own (internal) mode is `NORMAL`. Every sink the
+ * app builds was silent under it: the playlist stalled at 0 ms, no chunk ever finished, and Android's media
+ * session never left `NONE`. Naming the field is what makes F§10.4's "silent mode still plays" true.
  * - `setNowPlaying(sink, { title, subtitle })` hands the queue to the lock screen: play/pause and
  *   previous/next sentence, which is F§10.4's control list. The platform shows one owner at a time, so the
  *   queue that was handed over is remembered and `clearNowPlaying()` takes it back.
@@ -47,13 +58,15 @@ let owner: ExpoQueueSink | null = null;
 
 /**
  * `configureAudioSession()` — F§10.4's mode for the whole app. Safe to call more than once: it sets the same
- * two declarations and leaves the platform's other defaults alone.
+ * three declarations and leaves the platform's other defaults alone.
  */
 export async function configureAudioSession(): Promise<void> {
   const audio: typeof import("expo-audio") = await import("expo-audio");
   await audio.setAudioModeAsync({
     shouldPlayInBackground: true,
     interruptionMode: "doNotMix",
+    // Named because an omitted field reaches the platform as `false`: see this file's header.
+    playsInSilentMode: true,
   });
 }
 

@@ -26,7 +26,8 @@
         "expo-build-properties",
         {
           "android": {
-            "usesCleartextTraffic": true
+            "usesCleartextTraffic": true,
+            "extraProguardRules": "-keep class com.google.mlkit.** { *; }\n-dontwarn com.google.mlkit.**\n"
           }
         }
       ],

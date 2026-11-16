@@ -29,34 +29,12 @@ import {
   filterDocuments,
   sortDocuments,
 } from "@lectern/core";
-import { Tabs, useFocusEffect, useRouter } from "expo-router";
+import { useFocusEffect, useRouter } from "expo-router";
 import { useCallback, useMemo, useState } from "react";
-import { ActivityIndicator, FlatList, Modal, Pressable, ScrollView, StyleSheet, Text, TextInput, View, type ViewStyle } from "react-native";
+import { ActivityIndicator, FlatList, Modal, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import { anchorsKey, originalKey } from "../../src/import/import-service";
 import { getStores } from "../../src/stores";
 import { radius, type Theme, useTheme } from "../../src/theme";
-
-/**
- * The colour a React Native style accepts for a property — which is what a tab navigator hands its icon:
- * `ViewStyle["backgroundColor"]` without its `undefined`, quoting the installed `react-native@0.88.1`.
- */
-type MarkColor = NonNullable<ViewStyle["backgroundColor"]>;
-
-/** Lectern's library mark: a list of rows, drawn from views rather than an icon font or an asset. */
-function LibraryMark({ color }: { color: MarkColor | null }) {
-  return (
-    <View style={markStyle.box}>
-      <View style={[markStyle.bar, { backgroundColor: color }]} />
-      <View style={[markStyle.bar, { backgroundColor: color }]} />
-      <View style={[markStyle.bar, { backgroundColor: color }]} />
-    </View>
-  );
-}
-
-const markStyle = StyleSheet.create({
-  box: { gap: 3, height: 18, justifyContent: "center", width: 18 },
-  bar: { borderRadius: 2, height: 3 },
-});
 
 /** The orders the list offers (F§10.1), and the label each one is offered under. */
 const SORT_ORDERS: readonly DocumentSortOrder[] = ["addedAt", "title", "progress"];
@@ -234,13 +212,6 @@ export default function LibraryScreen() {
 
   const header = (
     <View style={styles.header}>
-      <Tabs.Screen
-        options={{
-          title: "Library",
-          tabBarIcon: ({ color }: { color: MarkColor | null }) => <LibraryMark color={color} />,
-        }}
-      />
-
       <Pressable style={styles.import} onPress={() => router.push("/import")} accessibilityRole="button" testID="open-import">
         <Text style={styles.importText}>Import</Text>
       </Pressable>

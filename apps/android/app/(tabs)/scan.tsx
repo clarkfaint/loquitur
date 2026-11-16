@@ -21,41 +21,14 @@
  */
 
 import type { RawBlock } from "@lectern/core";
-import { Tabs, useRouter } from "expo-router";
+import { useRouter } from "expo-router";
 import { useCallback, useMemo, useRef, useState } from "react";
-import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View, type ViewStyle } from "react-native";
+import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { discardScanImages, recognizePages, saveScan, scanPages } from "../../src/scan/scan-service";
 import { radius, type Theme, useTheme } from "../../src/theme";
 
 /** How much of the recognised text the preview shows before it stops. */
 const PREVIEW_LENGTH = 280;
-
-/**
- * The colour a React Native style accepts for a property, which is what a tab navigator hands its icon:
- * `ViewStyle["backgroundColor"]` without its `undefined`, quoting the installed `react-native@0.88.1`.
- */
-type MarkColor = NonNullable<ViewStyle["backgroundColor"]>;
-
-/** Lectern's scan mark: the four corners of a page, drawn from views rather than an icon font or an asset. */
-function ScanMark({ color }: { color: MarkColor | null }) {
-  return (
-    <View style={markStyle.box}>
-      <View style={[markStyle.corner, markStyle.topLeft, { borderColor: color }]} />
-      <View style={[markStyle.corner, markStyle.topRight, { borderColor: color }]} />
-      <View style={[markStyle.corner, markStyle.bottomLeft, { borderColor: color }]} />
-      <View style={[markStyle.corner, markStyle.bottomRight, { borderColor: color }]} />
-    </View>
-  );
-}
-
-const markStyle = StyleSheet.create({
-  box: { height: 18, position: "relative", width: 18 },
-  corner: { height: 6, position: "absolute", width: 6 },
-  topLeft: { borderLeftWidth: 2, borderTopWidth: 2, left: 0, top: 0 },
-  topRight: { borderRightWidth: 2, borderTopWidth: 2, right: 0, top: 0 },
-  bottomLeft: { borderBottomWidth: 2, borderLeftWidth: 2, bottom: 0, left: 0 },
-  bottomRight: { borderBottomWidth: 2, borderRightWidth: 2, bottom: 0, right: 0 },
-});
 
 /** What the screen is doing: nothing, taking pages, reading them, or storing the document. */
 type Stage = "idle" | "scanning" | "reading" | "saving";
@@ -205,13 +178,6 @@ export default function ScanScreen() {
 
   return (
     <ScrollView style={styles.page} contentContainerStyle={styles.content}>
-      <Tabs.Screen
-        options={{
-          title: "Scan",
-          tabBarIcon: ({ color }: { color: MarkColor | null }) => <ScanMark color={color} />,
-        }}
-      />
-
       <Text style={styles.heading}>Scan a document</Text>
       <Text style={styles.hint}>
         Photograph the pages in order. Lectern reads them on this phone — nothing is uploaded, and no photograph is kept once the document
