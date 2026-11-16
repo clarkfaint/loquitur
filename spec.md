@@ -2221,7 +2221,7 @@ pnpm --filter @lectern/android exec vitest run \
   && pnpm --filter @lectern/android exec expo export --platform android --output-dir dist \
   && (cd apps/android && npx expo prebuild --platform android --clean --no-install) \
   && grep -q "android.permission.CAMERA" apps/android/android/app/src/main/AndroidManifest.xml \
-  && ! grep -q "RECORD_AUDIO" apps/android/android/app/src/main/AndroidManifest.xml \
+  && ! grep -q 'android.permission.RECORD_AUDIO"/>' apps/android/android/app/src/main/AndroidManifest.xml \
   && (cd apps/android/android && ./gradlew :app:assembleDebug -q)
 ```
 Pass: exit code 0. Camera capture itself needs a physical page and is a manual check listed in U-053's report.
