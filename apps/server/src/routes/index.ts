@@ -8,11 +8,13 @@
 import type { FastifyInstance } from "fastify";
 import type { HubContext } from "../context";
 import { healthRoutes } from "./health";
+import { libraryRoutes } from "./library";
 import { parseRoutes } from "./parse";
+import { syncRoutes } from "./sync";
 import { ttsRoutes } from "./tts";
 import { voicesRoutes } from "./voices";
 
 /** One route module: it registers its own paths on the instance it is given. */
 export type RouteRegistrar = (app: FastifyInstance, ctx: HubContext) => void;
 
-export const routes: RouteRegistrar[] = [healthRoutes, voicesRoutes, ttsRoutes, parseRoutes];
+export const routes: RouteRegistrar[] = [healthRoutes, voicesRoutes, ttsRoutes, parseRoutes, libraryRoutes, syncRoutes];
