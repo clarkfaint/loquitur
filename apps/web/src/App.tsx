@@ -14,6 +14,7 @@ import { type ReactElement, useEffect } from "react";
 import { matchRoute, navigate, useHashRoute } from "./router";
 import { routes } from "./routes";
 import { applyTheme, useSettingsStore } from "./settings/settings";
+import { SyncBadge } from "./sync/SyncBadge";
 
 /** The screen a fresh install starts on (F§10.1). */
 const SETTINGS_PATH = "/settings";
@@ -72,6 +73,7 @@ export function App(): ReactElement {
               </a>
             ))}
         </nav>
+        <SyncBadge />
       </header>
       <div className="lectern-shell__content">{Screen === undefined ? <NoScreen path={route.path} /> : <Screen />}</div>
     </div>

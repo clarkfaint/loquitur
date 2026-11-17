@@ -49,6 +49,7 @@ import {
 import { useCallback, useEffect, useRef, useState } from "react";
 import { getServices } from "../services";
 import { useSettingsStore } from "../settings/settings";
+import { syncService } from "../sync/sync-service";
 
 /** What a reader's screen gets from the player. */
 export interface PlayerView {
@@ -151,7 +152,12 @@ export function usePlayer(docId: string): PlayerView {
     settingsRef.current.lookaheadMs = preferences.lookaheadMs;
   }, [preferences.lookaheadMs, preferences.skipCitations, preferences.skipFurniture]);
 
-  /** Write F§5.9's progress record for the word being read, unless one was written a moment ago. */
+  /**
+   * Write F§5.9's progress record for the word being read, unless one was written a moment ago.
+   *
+   * A written position is also F§8's own business: the reader announces it through the sync service, which
+   * rings the engine for the round that carries it. Inert with sync off, like every other call into it.
+   */
   const writeProgress = useCallback(
     (force: boolean): void => {
       const controller = controllerRef.current;
@@ -161,7 +167,9 @@ export function usePlayer(docId: string): PlayerView {
       if (!force && at - lastWriteRef.current < PROGRESS_INTERVAL_MS) return;
       lastWriteRef.current = at;
       const word = controller.activeWord();
-      void store.setProgress({ docId, sentenceIndex: word.sentenceIndex, wordIndex: word.wordIndex, updatedAt: at }).catch(() => undefined);
+      const written = { docId, sentenceIndex: word.sentenceIndex, wordIndex: word.wordIndex, updatedAt: at };
+      void store.setProgress(written).catch(() => undefined);
+      syncService.notifyLocalChange();
     },
     [docId],
   );
@@ -182,8 +190,15 @@ export function usePlayer(docId: string): PlayerView {
       if (!live) return;
       storeRef.current = services.store;
 
-      const loaded = await services.store.getDocumentModel(docId);
+      let loaded = await services.store.getDocumentModel(docId);
       if (!live) return;
+      if (loaded === null) {
+        // F§8.2's lazy body: a document that arrived from another device as a record alone has no model on
+        // this one yet, so the hub's own copy is asked for through the sync service — which answers `null`
+        // for a device with sync off or no hub, leaving the reader exactly as it was before sync existed.
+        loaded = await syncService.ensureModel(docId);
+        if (!live) return;
+      }
       if (loaded === null) {
         setNotFound(true);
         return;

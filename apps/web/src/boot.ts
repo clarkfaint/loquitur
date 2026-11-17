@@ -8,10 +8,15 @@
 
 import { desktopIntegration } from "./desktop/desktop-integration";
 import type { Services } from "./services";
+import { syncService } from "./sync/sync-service";
 
 /** One start-up feature: given the app's services, it may do nothing or return a promise that resolves. */
 export type BootFeature = (services: Services) => void | Promise<void>;
 
+/** F§8's own start-up: sync begins for a device whose switch is on, and does nothing at all for one whose is
+ * off — with sync off, or with a hub nobody can reach, every other feature works exactly as it does here. */
+const syncBoot: BootFeature = (services) => syncService.start(services);
+
 /** Every registered feature, in the order they run. The desktop shell's hand-offs are the first: a shell that
  * is present can ask for a document to be read before the reader has touched anything. */
-export const bootFeatures: BootFeature[] = [desktopIntegration];
+export const bootFeatures: BootFeature[] = [desktopIntegration, syncBoot];
