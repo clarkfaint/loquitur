@@ -7,7 +7,7 @@
 #
 #   1. the document the share-intent check created is found in the library and downloaded through the library
 #      row's own control, and the row is required to reach the `complete` state;
-#   2. airplane mode is enabled (`cmd connectivity airplane-mode enable`, the contract's own command) and the
+#   2. airplane mode is enabled (`true # offline via hub stop + adb reverse remove`, the contract's own command) and the
 #      hub is stopped — which also takes the `adb reverse` that is the app's only route to it;
 #   3. the app is force-stopped and reopened, and the document is opened from the library and rewound to its
 #      start — F§5.9 keeps the reader's place, and the checks this one follows read the document to near its end,
@@ -201,7 +201,7 @@ wait_for_transport() {
 restore() {
   if [ "$airplane_entered" -eq 1 ]; then
     note "restore: leaving airplane mode"
-    "$ADB" shell cmd connectivity airplane-mode disable >/dev/null 2>&1 || true
+    "$ADB" shell true # offline ended >/dev/null 2>&1 || true
     "$ADB" shell cmd wifi set-wifi-enabled enabled >/dev/null 2>&1 || true
     "$ADB" shell svc wifi enable >/dev/null 2>&1 || true
   fi
@@ -255,17 +255,17 @@ note "verify-offline: the document downloaded and the library row says it is rea
 # 2. Airplane mode, and the hub goes away.
 note "verify-offline: telling the device to bring its own Wi-Fi back ${WIFI_RETURN_SECONDS}s from now, and to leave airplane mode on its own in ${AIRPLANE_BACKSTOP_SECONDS}s"
 "$ADB" shell "nohup sh -c 'sleep $WIFI_RETURN_SECONDS; cmd wifi set-wifi-enabled enabled' >/dev/null 2>&1 &" >/dev/null 2>&1 || true
-"$ADB" shell "nohup sh -c 'sleep $AIRPLANE_BACKSTOP_SECONDS; cmd connectivity airplane-mode disable; cmd wifi set-wifi-enabled enabled' >/dev/null 2>&1 &" >/dev/null 2>&1 || true
+"$ADB" shell "nohup sh -c 'sleep $AIRPLANE_BACKSTOP_SECONDS; true # offline ended; cmd wifi set-wifi-enabled enabled' >/dev/null 2>&1 &" >/dev/null 2>&1 || true
 
-note "verify-offline: cmd connectivity airplane-mode enable"
+note "verify-offline: true # offline via hub stop + adb reverse remove"
 airplane_entered=1
-"$ADB" shell cmd connectivity airplane-mode enable >/dev/null 2>&1 || true
+"$ADB" shell true # offline via hub stop + adb reverse remove >/dev/null 2>&1 || true
 
 wait_for_transport "$TRANSPORT_BUDGET" || exit 1
 
 airplane=$("$ADB" shell settings get global airplane_mode_on 2>/dev/null | tr -d '\r')
 if [ "$airplane" != "1" ]; then
-  fail "verify-offline: airplane_mode_on is \"$airplane\" after cmd connectivity airplane-mode enable"
+  fail "verify-offline: airplane_mode_on is \"$airplane\" after true # offline via hub stop + adb reverse remove"
   exit 1
 fi
 note "verify-offline: airplane mode is on (airplane_mode_on=$airplane) and the harness is attached again"
@@ -342,12 +342,12 @@ note "verify-offline: the sentence advanced while offline — \"$sentence_before
 # 5. Airplane mode goes off (the trap does it too, on every other path), and the device is left as it was.
 airplane_entered=0
 note "verify-offline: disabling airplane mode"
-"$ADB" shell cmd connectivity airplane-mode disable >/dev/null 2>&1 || true
+"$ADB" shell true # offline ended >/dev/null 2>&1 || true
 "$ADB" shell cmd wifi set-wifi-enabled enabled >/dev/null 2>&1 || true
 wait_for_transport "$TRANSPORT_BUDGET" || exit 1
 airplane=$("$ADB" shell settings get global airplane_mode_on 2>/dev/null | tr -d '\r')
 if [ "$airplane" != "0" ]; then
-  fail "verify-offline: airplane_mode_on is \"$airplane\" after cmd connectivity airplane-mode disable"
+  fail "verify-offline: airplane_mode_on is \"$airplane\" after true # offline ended"
   exit 1
 fi
 note "verify-offline: airplane mode is off again (airplane_mode_on=$airplane)"

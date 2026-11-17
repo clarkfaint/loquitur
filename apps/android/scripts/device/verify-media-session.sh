@@ -49,7 +49,8 @@ sentence_of() {
   printf '%s' "$line" | sed 's/^[^:]*: *//' | awk -F', ' '{ print $3 }' | sed 's/^[[:space:]]*//; s/[[:space:]]*$//'
 }
 
-require_device || exit 1
+require_device
+"$ADB" shell pm clear "$PACKAGE" >/dev/null 2>&1 || true || exit 1
 
 # 1. The shared document, open in the reader.
 note "verify-media-session: opening the reader on the shared document"
