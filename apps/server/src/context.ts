@@ -17,6 +17,10 @@ import {
   type Voice,
 } from "@lectern/core-tts";
 import type { Config } from "./config";
+import { type HubDatabase, openDatabase } from "./db/database";
+import { createDocumentFiles, type DocumentFiles } from "./db/document-files";
+import { migrate } from "./db/migrations";
+import { createRecordsRepo, type RecordsRepo } from "./db/records-repo";
 import { HubError } from "./errors";
 import { createTtsCache, type HubTtsCache } from "./tts-cache";
 
@@ -55,6 +59,12 @@ export interface HubContext {
   ttsCache: HubTtsCache;
   /** The engine a parse reads an image or a scanned page with, built on the first parse that needs one. */
   ocr: OcrProvider;
+  /** F§8.4's database file, open for the life of the app and closed when the app is (F§8.2's storage). */
+  db: HubDatabase;
+  /** F§8.2's record repository: the pushed ops, the change log and the `rev` a pull pages from. */
+  records: RecordsRepo;
+  /** F§8.4's document files: each document's model and original, under the data directory. */
+  files: DocumentFiles;
 }
 
 /**
@@ -113,14 +123,29 @@ export function createHubEngines(engines: readonly TtsEngine[]): HubEngines {
 }
 
 /**
- * `createHubContext(config, overrides)` — the hub's shared context (F§7.1–F§7.3).
+ * `createHubContext(config, overrides)` — the hub's shared context (F§7.1–F§7.3, F§8.2, F§8.4).
  *
  * The engines F§7.1 enables are built from the configuration; the TTS cache is rooted at the configured data
  * directory. Either may be replaced, which is how a test watches what a route asked an engine for without a
  * service of its own.
+ *
+ * The database is opened and taken to F§8.4's schema here, when the hub is built, rather than on the first
+ * request that needs it: a hub whose storage cannot be opened has nothing to serve, so it fails while it is
+ * being built. The app closes the connection in its own close hook, and the record repository and the
+ * document files are built over the same data directory the rest of the hub uses.
  */
 export async function createHubContext(config: Config, overrides: HubOverrides = {}): Promise<HubContext> {
   const engines = overrides.engines ?? createHubEngines(enabledEngines(config));
   const ttsCache = overrides.ttsCache ?? createTtsCache(config.dataDir);
-  return { config, engines, ttsCache, ocr: overrides.ocr ?? lazyOcrEngine(config.dataDir) };
+  const db = await openDatabase(config.dataDir);
+  migrate(db);
+  return {
+    config,
+    engines,
+    ttsCache,
+    ocr: overrides.ocr ?? lazyOcrEngine(config.dataDir),
+    db,
+    records: createRecordsRepo(db),
+    files: createDocumentFiles(config.dataDir),
+  };
 }

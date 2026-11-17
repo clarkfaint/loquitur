@@ -57,6 +57,11 @@ export async function buildApp(config: Config, overrides: BuildAppOptions = {}):
   app.addHook("onRequest", createAuthHook(config));
   app.setErrorHandler(hubErrorHandler);
   app.setNotFoundHandler(hubNotFoundHandler);
+  // F§8.4's database lives as long as the app does: the close hook is where the connection is released, so
+  // a test that closes the hub leaves no open SQLite handle behind and the entry point's shutdown is clean.
+  app.addHook("onClose", () => {
+    context.db.close();
+  });
   for (const route of routes) route(app, context);
   return app;
 }
