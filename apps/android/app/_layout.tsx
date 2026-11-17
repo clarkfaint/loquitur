@@ -11,7 +11,10 @@
 
 import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
+import { useEffect } from "react";
 import { SafeAreaProvider } from "react-native-safe-area-context";
+import { getStores } from "../src/stores";
+import { syncService } from "../src/sync/sync-service";
 import { ThemeProvider, useTheme } from "../src/theme";
 
 /** The stack itself, inside the providers, so its own colours come from the theme. */
@@ -32,6 +35,22 @@ function RootNavigator() {
 }
 
 export default function RootLayout() {
+  // F§8: this device's sync runs with the app and only with the app — the service is started here with the
+  // app's own store, and taken down when the layout goes. It is inert while no hub is configured and while
+  // the reader's own switch is off, so nothing below this line depends on it.
+  useEffect(() => {
+    let live = true;
+    void (async () => {
+      const stores = await getStores();
+      if (!live) return;
+      await syncService.start({ store: stores.store });
+    })().catch(() => undefined);
+    return () => {
+      live = false;
+      syncService.stop();
+    };
+  }, []);
+
   return (
     <ThemeProvider>
       <SafeAreaProvider>

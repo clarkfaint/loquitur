@@ -52,6 +52,7 @@ import { clearNowPlaying, configureAudioSession, setNowPlaying } from "../audio/
 import { createExpoQueueSink, type ExpoQueueSink, readSinkMaxRate } from "../audio/expo-queue-sink";
 import { createClient } from "../connection";
 import { getStores } from "../stores";
+import { syncService } from "../sync/sync-service";
 
 /** How long the player is when nothing is loaded (F§5.7's `idle`). */
 const IDLE_SNAPSHOT: PlayerSnapshot = {
@@ -242,6 +243,9 @@ export function PlayerProvider({ docId, autoplay, children }: PlayerProviderProp
     const word = current.activeWord();
     void store
       .setProgress({ docId: doc.docId, sentenceIndex: word.sentenceIndex, wordIndex: word.wordIndex, updatedAt: at })
+      // F§8.2: the reader's place is the one local write this file can announce, so the sync service is told
+      // about it directly rather than waiting for its own look at the outbox.
+      .then(() => syncService.notifyLocalChange())
       .catch(() => undefined);
   }, []);
 
@@ -259,7 +263,10 @@ export function PlayerProvider({ docId, autoplay, children }: PlayerProviderProp
       if (!live) return;
       storeRef.current = stores.store;
 
-      const loaded = await stores.store.getDocumentModel(docId);
+      // F§8.2's lazy document body: a record can arrive from the reader's other device before its text does,
+      // so a document whose model is missing locally asks the sync service for it once — the hub's copy,
+      // stored — and only a document the hub holds no model for either is "not found".
+      const loaded = (await stores.store.getDocumentModel(docId)) ?? (await syncService.ensureModel(docId));
       if (!live) return;
       if (loaded === null) {
         setNotFound(true);

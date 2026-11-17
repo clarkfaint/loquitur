@@ -14,6 +14,7 @@ import { audioChecks } from "../audio/diagnostics";
 import { createClient, getConnection } from "../connection";
 import { runCoreSelfTest } from "../selftest";
 import { storeChecks } from "../stores/diagnostics";
+import { syncChecks } from "../sync/diagnostics";
 
 /** What one check reports: whether it held, and one line saying what it saw. */
 export interface DiagnosticResult {
@@ -73,4 +74,4 @@ const hubHealth: DiagnosticCheck = {
 };
 
 /** Every registered check, in the order the diagnostics screen runs them. */
-export const checks: DiagnosticCheck[] = [coreSelfTest, hubHealth, ...storeChecks, ...audioChecks];
+export const checks: DiagnosticCheck[] = [coreSelfTest, hubHealth, ...storeChecks, ...audioChecks, ...syncChecks];

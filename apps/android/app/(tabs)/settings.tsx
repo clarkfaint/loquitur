@@ -22,6 +22,7 @@ import { Link } from "expo-router";
 import { useEffect, useMemo, useState } from "react";
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Switch, Text, TextInput, View } from "react-native";
 import { type Connection, createClient, getConnection, onConnectionChanged, setConnection } from "../../src/connection";
+import { SyncCard } from "../../src/sync/SyncCard";
 import { radius, type Theme, useTheme } from "../../src/theme";
 
 /** One rate, snapped onto F§5.6(e)'s 0.05 step and held inside its range. */
@@ -121,6 +122,9 @@ export default function SettingsScreen() {
         {busy ? <ActivityIndicator color={theme.colors.accentInk} /> : <Text style={styles.buttonText}>Test connection</Text>}
       </Pressable>
       {probe === null ? null : <Text style={styles.probe}>{probe}</Text>}
+
+      <Text style={styles.heading}>Sync</Text>
+      <SyncCard />
 
       <Text style={styles.heading}>Playback</Text>
 
