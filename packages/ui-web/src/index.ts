@@ -13,6 +13,7 @@ export * from "./components/PlayerBar";
 export * from "./components/ReaderView";
 export * from "./components/SleepTimerMenu";
 export * from "./components/SpeedControl";
+export * from "./components/SummaryPanel";
 export * from "./components/VoicePicker";
 export * from "./desktop-bridge";
 export * from "./format";

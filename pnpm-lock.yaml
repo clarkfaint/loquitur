@@ -567,6 +567,9 @@ importers:
 
   packages/ui-web:
     dependencies:
+      '@lectern/api-contract':
+        specifier: workspace:*
+        version: link:../api-contract
       '@lectern/core':
         specifier: workspace:*
         version: link:../core

@@ -16,6 +16,7 @@
 import { type DocumentModel, type PdfAnchor, PdfAnchorSchema, type PlayerCommand } from "@lectern/core";
 import { PlayerBar, ReaderView } from "@lectern/ui-web";
 import { type ReactElement, useEffect, useRef, useState } from "react";
+import { SummaryDrawer } from "../ai/SummaryDrawer";
 import { anchorsKey, originalKey } from "../import/import-service";
 import { matchRoute, useHashRoute } from "../router";
 import { getStorage } from "../services";
@@ -77,6 +78,36 @@ const RULES = [
   ".lectern-mini { display: flex; flex-direction: column; gap: var(--lectern-space-3); }",
   ".lectern-mini__title { font-size: 1rem; margin: 0; }",
   ".lectern-mini__empty { color: var(--lectern-ink-muted); }",
+  ".lectern-reader-page__summarize { background: transparent; border: 1px solid var(--lectern-line);",
+  "  border-radius: var(--lectern-radius-2); color: var(--lectern-ink); cursor: pointer; font: inherit;",
+  "  padding: var(--lectern-space-2) var(--lectern-space-3); }",
+  '.lectern-reader-page__summarize[aria-expanded="true"] { background: var(--lectern-accent-soft); }',
+  ".lectern-summary-drawer { background: var(--lectern-surface); border: 1px solid var(--lectern-line);",
+  "  border-radius: var(--lectern-radius-3); display: flex; flex-direction: column; gap: var(--lectern-space-3);",
+  "  padding: var(--lectern-space-4); }",
+  ".lectern-summary-drawer__close { align-self: end; background: transparent; border: 1px solid var(--lectern-line);",
+  "  border-radius: var(--lectern-radius-2); color: var(--lectern-ink); cursor: pointer; font: inherit;",
+  "  padding: var(--lectern-space-2) var(--lectern-space-3); }",
+  ".lectern-summary { display: flex; flex-direction: column; gap: var(--lectern-space-3); }",
+  ".lectern-summary__head { align-items: center; display: flex; flex-wrap: wrap; gap: var(--lectern-space-3);",
+  "  justify-content: space-between; }",
+  ".lectern-summary__title { font-size: 1rem; margin: 0; }",
+  ".lectern-summary__modes { border: 0; display: flex; gap: var(--lectern-space-2); margin: 0;",
+  "  min-inline-size: 0; padding: 0; }",
+  ".lectern-summary__mode, .lectern-summary__generate, .lectern-summary__listen { background: transparent;",
+  "  border: 1px solid var(--lectern-line); border-radius: var(--lectern-radius-2); color: var(--lectern-ink);",
+  "  cursor: pointer; font: inherit; padding: var(--lectern-space-2) var(--lectern-space-3); }",
+  '.lectern-summary__mode[aria-pressed="true"] { background: var(--lectern-accent-soft); }',
+  ".lectern-summary__generate { background: var(--lectern-accent); border-color: var(--lectern-accent);",
+  "  color: var(--lectern-accent-ink); }",
+  ".lectern-summary__generate:disabled, .lectern-summary__listen:disabled { cursor: not-allowed; opacity: 0.6; }",
+  ".lectern-summary__empty, .lectern-summary__model, .lectern-summary__running { color: var(--lectern-ink-muted);",
+  "  font-size: 0.875rem; margin: 0; }",
+  ".lectern-summary__problem { color: var(--lectern-danger); margin: 0; }",
+  ".lectern-summary__text { margin: 0; }",
+  ".lectern-summary__takeaways { display: flex; flex-direction: column; gap: var(--lectern-space-2); margin: 0;",
+  "  padding-left: var(--lectern-space-5); }",
+  ".lectern-summary__actions { display: flex; flex-wrap: wrap; gap: var(--lectern-space-2); }",
 ].join("\n");
 
 /** F§10.1's autoplay switch, as the query string spells it. */
@@ -188,6 +219,7 @@ export function ReaderPage(): ReactElement {
   const preferences = useSettingsStore((state) => state.preferences);
   const update = useSettingsStore((state) => state.update);
   const [panelOpen, setPanelOpen] = useState(false);
+  const [summaryOpen, setSummaryOpen] = useState(false);
   const [view, setView] = useState<ViewMode>("text");
   const autoStarted = useRef(false);
   const { dispatch, snapshot } = player;
@@ -211,20 +243,25 @@ export function ReaderPage(): ReactElement {
     setView("text");
   }, [docId]);
 
-  // `?autoplay=1` starts the reading once the document is loaded, and never a second time.
+  // `?autoplay=1` starts the reading once the document is loaded, and never a second time. The snapshot has to
+  // be *this* document's: a reader who moves from one document to another with the switch in the address bar —
+  // which is what F§9's "listen to the summary" does — would otherwise spend the one autoplay on the document
+  // they are leaving, because the previous document's `ready` snapshot is still the one on screen while the new
+  // player is being built.
   useEffect(() => {
     if (autoStarted.current) return;
     if (route.query.get(AUTOPLAY) !== "1") return;
-    if (snapshot.state !== "ready") return;
+    if (snapshot.docId !== docId || snapshot.state !== "ready") return;
     autoStarted.current = true;
     dispatch({ type: "play" });
-  }, [dispatch, route.query, snapshot.state]);
+  }, [dispatch, docId, route.query, snapshot.docId, snapshot.state]);
 
   // The keyboard belongs to the window: a reader pressing a key is not aiming at a control.
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent): void => {
       if (event.key === "Escape") {
         setPanelOpen(false);
+        setSummaryOpen(false);
         return;
       }
       const command = commandForKey(event, snapshot);
@@ -290,6 +327,14 @@ export function ReaderPage(): ReactElement {
           >
             Bookmarks
           </button>
+          <button
+            aria-expanded={summaryOpen}
+            className="lectern-reader-page__summarize"
+            onClick={() => setSummaryOpen((open) => !open)}
+            type="button"
+          >
+            Summarize
+          </button>
         </div>
       </header>
 
@@ -299,7 +344,7 @@ export function ReaderPage(): ReactElement {
         </p>
       )}
 
-      <div className={`lectern-reader-page__columns${panelOpen ? "" : " lectern-reader-page__columns--solo"}`}>
+      <div className={`lectern-reader-page__columns${panelOpen || summaryOpen ? "" : " lectern-reader-page__columns--solo"}`}>
         {model === null ? (
           <p className="lectern-reader-page__empty" role="status">
             Opening the document…
@@ -318,6 +363,8 @@ export function ReaderPage(): ReactElement {
             position={player.active ?? { sentenceIndex: snapshot.sentenceIndex, wordIndex: snapshot.wordIndex }}
           />
         ) : null}
+
+        {summaryOpen && model !== null ? <SummaryDrawer docId={docId} onClose={() => setSummaryOpen(false)} /> : null}
       </div>
 
       {model === null ? null : (

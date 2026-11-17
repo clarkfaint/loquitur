@@ -7,6 +7,7 @@
  * that drives a hub without a socket lives at `@lectern/api-client/testing`.
  */
 
+export * from "./ai-client";
 export * from "./chunk-source";
 export * from "./client";
 export * from "./errors";
