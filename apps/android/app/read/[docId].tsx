@@ -70,6 +70,16 @@ function Reader() {
     <View style={styles.page}>
       <Stack.Screen options={{ title: model.title }} />
       {player.problem === null ? null : <Text style={styles.problem}>{player.problem}</Text>}
+      <View style={styles.tools}>
+        <Pressable
+          style={styles.summarise}
+          onPress={() => router.push(`/summary/${model.docId}`)}
+          accessibilityRole="button"
+          testID="open-summary"
+        >
+          <Text style={styles.summariseText}>Summarize</Text>
+        </Pressable>
+      </View>
       <BlockList document={model} active={active} onSeek={seek} />
       <PlayerBarNative
         snapshot={player.snapshot}
@@ -152,5 +162,17 @@ function createStyles(theme: Theme) {
       paddingHorizontal: theme.spacing.five,
     },
     buttonText: { color: theme.colors.accentInk, fontSize: theme.type.label, fontWeight: "600" },
+    tools: { alignItems: "flex-end", paddingHorizontal: theme.spacing.four, paddingTop: theme.spacing.two },
+    summarise: {
+      alignItems: "center",
+      backgroundColor: theme.colors.surface,
+      borderColor: theme.colors.line,
+      borderRadius: theme.radius.two,
+      borderWidth: 1,
+      justifyContent: "center",
+      minHeight: theme.control.size,
+      paddingHorizontal: theme.spacing.four,
+    },
+    summariseText: { color: theme.colors.ink, fontSize: theme.type.label, fontWeight: "600" },
   });
 }
