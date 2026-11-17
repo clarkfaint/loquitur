@@ -8,6 +8,7 @@
 
 import cors from "@fastify/cors";
 import Fastify, { type FastifyInstance, type FastifyServerOptions } from "fastify";
+import { createOpenAiCompatibleProvider, type LlmProvider } from "./ai/provider";
 import { createAuthHook } from "./auth";
 import type { Config } from "./config";
 import { createHubContext, type HubOverrides } from "./context";
@@ -39,15 +40,33 @@ export interface BuildAppOptions extends HubOverrides {
 }
 
 /**
+ * F§9's provider for this hub: built when F§7.1's `LLM_BASE_URL` and `LLM_MODEL` are both set, and nothing
+ * when either is missing, because a hub with no endpoint configured has no AI routes to serve. The key is
+ * F§7.1's third LLM variable and is passed only when it is set, so an endpoint that wants no credential
+ * receives no header (F§9).
+ */
+function configuredLlm(config: Config): LlmProvider | undefined {
+  const baseUrl = config.llmBaseUrl;
+  const model = config.llmModel;
+  if (baseUrl === undefined || model === undefined) return undefined;
+  const apiKey = config.llmApiKey;
+  return createOpenAiCompatibleProvider({ baseUrl, model, ...(apiKey === undefined ? {} : { apiKey }) });
+}
+
+/**
  * `buildApp(config, overrides)` — the hub, ready for requests.
  *
  * CORS answers any origin with the `Authorization` header and never allows credentials (F§7.2), because
  * authentication is header-based and cookie-free. The request hook runs before every route but the health
  * probe, and both handlers answer through F§7.2's envelope. The logger is off unless a caller asks for one,
  * so a hub built by a test is silent and the entry point decides what its log carries.
+ *
+ * F§9's LLM provider is created here, from the configuration, and handed to the context with everything else;
+ * a caller may hand one in instead, which is how a test drives an AI route without an endpoint.
  */
 export async function buildApp(config: Config, overrides: BuildAppOptions = {}): Promise<FastifyInstance> {
-  const context = await createHubContext(config, overrides);
+  const llm = overrides.llm ?? configuredLlm(config);
+  const context = await createHubContext(config, llm === undefined ? overrides : { ...overrides, llm });
   const app = Fastify({ logger: overrides.logger ?? false });
 
   // F§7.2's raw-body form of `POST /v1/parse`: every content type but JSON arrives as the bytes the

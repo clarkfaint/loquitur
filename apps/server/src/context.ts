@@ -16,6 +16,7 @@ import {
   type TtsEngine,
   type Voice,
 } from "@lectern/core-tts";
+import type { LlmProvider } from "./ai/provider";
 import type { Config } from "./config";
 import { type HubDatabase, openDatabase } from "./db/database";
 import { createDocumentFiles, type DocumentFiles } from "./db/document-files";
@@ -43,13 +44,14 @@ export interface HubEngines extends EngineRegistry {
 export type OcrProvider = () => OcrEngine;
 
 /**
- * What a caller may replace when it builds the hub: the engines to observe, the cache to inspect, and
- * the OCR engine a parse reads an image with.
+ * What a caller may replace when it builds the hub: the engines to observe, the cache to inspect, the OCR
+ * engine a parse reads an image with, and F§9's LLM provider.
  */
 export interface HubOverrides {
   engines?: HubEngines;
   ttsCache?: HubTtsCache;
   ocr?: OcrProvider;
+  llm?: LlmProvider;
 }
 
 /** Everything a route module is given (F§7.1–F§7.3). */
@@ -65,6 +67,8 @@ export interface HubContext {
   records: RecordsRepo;
   /** F§8.4's document files: each document's model and original, under the data directory. */
   files: DocumentFiles;
+  /** F§9's LLM provider, present only when an endpoint and a model are configured and nothing else is. */
+  llm?: LlmProvider;
 }
 
 /**
@@ -133,6 +137,9 @@ export function createHubEngines(engines: readonly TtsEngine[]): HubEngines {
  * request that needs it: a hub whose storage cannot be opened has nothing to serve, so it fails while it is
  * being built. The app closes the connection in its own close hook, and the record repository and the
  * document files are built over the same data directory the rest of the hub uses.
+ *
+ * F§9's LLM provider is built by the app factory and handed in here, so this module never reads the
+ * configuration's own LLM fields and the context carries the provider only when there is one.
  */
 export async function createHubContext(config: Config, overrides: HubOverrides = {}): Promise<HubContext> {
   const engines = overrides.engines ?? createHubEngines(enabledEngines(config));
@@ -147,5 +154,6 @@ export async function createHubContext(config: Config, overrides: HubOverrides =
     db,
     records: createRecordsRepo(db),
     files: createDocumentFiles(config.dataDir),
+    ...(overrides.llm === undefined ? {} : { llm: overrides.llm }),
   };
 }
