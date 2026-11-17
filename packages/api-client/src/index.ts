@@ -10,3 +10,5 @@
 export * from "./chunk-source";
 export * from "./client";
 export * from "./errors";
+export * from "./sync-client";
+export * from "./sync-engine";
