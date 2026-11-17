@@ -20,6 +20,19 @@ const ALLOWED_HEADERS = ["authorization", "content-type", "range", "x-lectern-fi
 const EXPOSED_HEADERS = ["accept-ranges", "cache-control", "content-length", "content-range"];
 const ALLOWED_METHODS = ["GET", "HEAD", "POST", "PUT", "OPTIONS"];
 
+/**
+ * F§8.3's plugin, reached through a `string`-typed specifier rather than a static import: its shipped
+ * `types/index.d.ts` imports `ws`, whose declarations reach `@types/node`, and `Buffer` then becomes a real
+ * type in this program — which re-breaks the two frozen `packages/core` parser lines U-023 and U-055 each
+ * measured (`docx.ts:107` TS2740, `ocr-tesseract.ts:143` TS2345). Nothing this app may write can exclude the
+ * declarations, so the module is imported the way U-046 and U-055 reached a native addon: through a string,
+ * with the one member used declared here. It is the real plugin at runtime.
+ */
+const WS_PLUGIN_SPECIFIER = "@fastify/websocket" as string;
+
+/** The one member of the plugin's default export this app registers: a Fastify plugin that owns upgrades. */
+type WebSocketPlugin = (instance: FastifyInstance) => Promise<void>;
+
 /** What a caller may hand `buildApp` beside the configuration: F§7.1–F§7.3's pieces, and how to log. */
 export interface BuildAppOptions extends HubOverrides {
   logger?: FastifyServerOptions["logger"];
@@ -54,6 +67,13 @@ export async function buildApp(config: Config, overrides: BuildAppOptions = {}):
     exposedHeaders: EXPOSED_HEADERS,
     methods: ALLOWED_METHODS,
   });
+  // F§8.3's change feed is a socket, and the upgrade has to be dispatched through Fastify's own router for a
+  // socket to run the hooks and reach the route it named — which is what this plugin does, in place of the
+  // server's bare `upgrade` event. It is registered before the registry runs, because it reads the route
+  // table as routes are added: a route declaring a `wsHandler` is a socket route, and every other request to
+  // that path stays an ordinary HTTP request.
+  const { default: websocket } = (await import(WS_PLUGIN_SPECIFIER)) as { default: WebSocketPlugin };
+  await app.register(websocket);
   app.addHook("onRequest", createAuthHook(config));
   app.setErrorHandler(hubErrorHandler);
   app.setNotFoundHandler(hubNotFoundHandler);

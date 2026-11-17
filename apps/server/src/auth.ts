@@ -13,7 +13,16 @@ import type { Config } from "./config";
 import { HubError } from "./errors";
 
 /** F§7.2's one exempt route: a probe that answered `401` could not tell an operator the hub is up. */
-const EXEMPT_PATHS = new Set(["/healthz"]);
+const HEALTH_PATH = "/healthz";
+
+/**
+ * F§8.3's change feed, exempt for its own reason: a socket cannot carry an `Authorization` header before it
+ * is upgraded, so the path authenticates the connection with its *first message* instead (U-057). A request
+ * that arrives on this path without an upgrade is refused by the route itself and reads nothing.
+ */
+export const WS_FEED_PATH = "/v1/sync/ws";
+
+const EXEMPT_PATHS = new Set([HEALTH_PATH, WS_FEED_PATH]);
 
 /** The one authorization form this hub accepts: the scheme, then the token. */
 const BEARER = /^bearer[ \t]+(.+)$/i;

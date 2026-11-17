@@ -20,6 +20,14 @@ const DEFAULT_PORT = 8787;
 const DEFAULT_DATA_DIR = "./data";
 const DEFAULT_MAX_UPLOAD_MB = 100;
 
+/**
+ * The change feed's own two intervals (F§8.3, U-057): how long a socket may wait to authenticate, and how
+ * often the feed pings one that has. Both are configured rather than written into the route, so a test can
+ * drive the feed's clocks in milliseconds instead of waiting out thirty seconds.
+ */
+const DEFAULT_WS_AUTH_TIMEOUT_MS = 5000;
+const DEFAULT_WS_PING_INTERVAL_MS = 30000;
+
 /** The environment a hub reads: a plain record of names to values, which is exactly what a process environment is. */
 export type HubEnv = Readonly<Record<string, string | undefined>>;
 
@@ -32,10 +40,10 @@ const BaseUrlSchema = z
   .refine((value) => BASE_URL.test(value), { error: "must be an absolute http(s) URL" });
 
 /**
- * F§7.1's table as one schema. The token, the port, the data directory and the two limits are always present
- * once `loadConfig` has applied the table's defaults; the two engine URLs and the three LLM fields stay absent
- * when they are unset, which is what switches those features off. The object is strict, so the shape a caller
- * receives is the shape the table describes rather than a bag of strings.
+ * F§7.1's table as one schema. The token, the port, the data directory, the two limits and U-057's two feed
+ * intervals are always present once `loadConfig` has applied the table's defaults; the two engine URLs and the
+ * three LLM fields stay absent when they are unset, which is what switches those features off. The object is
+ * strict, so the shape a caller receives is the shape the table describes rather than a bag of strings.
  */
 export const ConfigSchema = z.strictObject({
   token: z.string().min(MIN_TOKEN_LENGTH),
@@ -49,6 +57,8 @@ export const ConfigSchema = z.strictObject({
   llmApiKey: z.string().min(1).exactOptional(),
   maxUploadMb: z.int().min(1),
   allowPrivateFetch: z.boolean(),
+  wsAuthTimeoutMs: z.int().min(1),
+  wsPingIntervalMs: z.int().min(1),
 });
 export type Config = z.infer<typeof ConfigSchema>;
 
@@ -87,9 +97,10 @@ function asInteger(name: string, value: string | undefined, fallback: number): n
 /**
  * `loadConfig(env)` — F§7.1's table, validated.
  *
- * The token is required and at least 32 characters (F§7.1, F§11); the port, the data directory and the two
- * limits take the table's defaults; the engine URLs and the LLM fields are absent when unset. A value the
- * table does not allow fails here, at the edge, and the message names the variable and what it received.
+ * The token is required and at least 32 characters (F§7.1, F§11); the port, the data directory, the two
+ * limits and F§8.3's two feed intervals take the table's defaults; the engine URLs and the LLM fields are
+ * absent when unset. A value the table does not allow fails here, at the edge, and the message names the
+ * variable and what it received.
  */
 export function loadConfig(env: HubEnv): Config {
   const token = present(env.LECTERN_TOKEN);
@@ -104,6 +115,8 @@ export function loadConfig(env: HubEnv): Config {
     enableMock: asFlag("LECTERN_ENABLE_MOCK", env.LECTERN_ENABLE_MOCK, false),
     maxUploadMb: asInteger("LECTERN_MAX_UPLOAD_MB", env.LECTERN_MAX_UPLOAD_MB, DEFAULT_MAX_UPLOAD_MB),
     allowPrivateFetch: asFlag("LECTERN_ALLOW_PRIVATE_FETCH", env.LECTERN_ALLOW_PRIVATE_FETCH, false),
+    wsAuthTimeoutMs: asInteger("LECTERN_WS_AUTH_TIMEOUT_MS", env.LECTERN_WS_AUTH_TIMEOUT_MS, DEFAULT_WS_AUTH_TIMEOUT_MS),
+    wsPingIntervalMs: asInteger("LECTERN_WS_PING_INTERVAL_MS", env.LECTERN_WS_PING_INTERVAL_MS, DEFAULT_WS_PING_INTERVAL_MS),
   };
   for (const [field, name] of OPTIONAL_FIELDS) {
     const value = present(env[name]);
