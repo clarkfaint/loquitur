@@ -7,5 +7,8 @@
  * in `./common`; phase 1's engine routes live in `./engine-api`.
  */
 
+export * from "./ai-api";
 export * from "./common";
 export * from "./engine-api";
+export * from "./library-api";
+export * from "./sync-api";
