@@ -30,10 +30,22 @@ export const ExtMessageSchema = z.discriminatedUnion("type", [
   z.strictObject({ type: z.literal("ext/read-selection") }),
   /** Any view to the offscreen document: F§5.7's command vocabulary, unchanged. */
   z.strictObject({ type: z.literal("ext/command"), command: PlayerCommandSchema }),
-  /** Offscreen document to the background, the popup and the content script: the player right now. */
-  z.strictObject({ type: z.literal("ext/snapshot"), snapshot: PlayerSnapshotSchema, title: z.string() }),
   /** Stop reading and let the offscreen document wind down. */
   z.strictObject({ type: z.literal("ext/stop") }),
+  /** The widget: keep the page being read in the library (F§10.2's save, Phase 5). */
+  z.strictObject({ type: z.literal("ext/save-page") }),
+  /**
+   * Offscreen document to the background, the popup and the content script: the player right now, and
+   * whether the document it is reading is in the library — a fact only the offscreen document holds, because
+   * it is the context that owns the library (F§10.2). `saved` is optional so a snapshot from a context that
+   * does not know about the library is still a snapshot.
+   */
+  z.strictObject({
+    type: z.literal("ext/snapshot"),
+    snapshot: PlayerSnapshotSchema,
+    title: z.string(),
+    saved: z.boolean().exactOptional(),
+  }),
   /** Popup: hand the active tab's PDF to the web app, which can read it (F§10.2). */
   z.strictObject({ type: z.literal("ext/open-pdf") }),
   /** Popup: what the extension is connected to and what it will read with. */

@@ -14,6 +14,14 @@
  * movement is `./drag`'s, which is pure: this component reports a delta and never decides where the widget may
  * sit.
  *
+ * One control is neither playback nor layout: Save (F§10.2, Phase 5). It is the one thing this component asks
+ * the extension for itself, and the one fact it keeps, because the props above are handed in by `./mount` — which
+ * decides what the widget looks like but owns no library. The request travels the way every other instruction
+ * does, and the answer is not this button's business: whether the page is in the library is the offscreen
+ * document's own fact, and it arrives with the next snapshot, which is also where the button reads it from. A
+ * page in a private window is offered no Save control at all, because F§10.2's rule keeps private pages out of
+ * the library and this is the only place that knows which kind of window the reader is in.
+ *
  * Every shape here is drawn from basic geometry — a triangle, two bars, a chevron, six dots — inside the
  * player's own 24-unit box, so the widget ships no artwork and no reference-product asset.
  */
@@ -21,7 +29,8 @@
 import type { PlayerCommand, PlayerSnapshot } from "@lectern/core";
 import type { Voice } from "@lectern/core-tts";
 import { CloseIcon, PauseIcon, PlayerBar, PlayIcon, SpeedControl } from "@lectern/ui-web";
-import { type KeyboardEvent as ReactKeyboardEvent, type PointerEvent as ReactPointerEvent, useRef } from "react";
+import { type KeyboardEvent as ReactKeyboardEvent, type PointerEvent as ReactPointerEvent, useEffect, useRef, useState } from "react";
+import { type ExtMessage, parseExtMessage } from "../../messages";
 import type { Point } from "./drag";
 
 /** How far one arrow key moves the widget, in pixels. */
@@ -48,6 +57,26 @@ export const IDLE_SNAPSHOT: PlayerSnapshot = {
   sleepRemainingMs: null,
   error: null,
 };
+
+/** What the Save control is called while the page is not in the library. */
+const SAVE_LABEL = "Save this page to the library";
+
+/** What it is called once the page is in the library — the widget's own report of the saved state. */
+const SAVED_LABEL = "Saved to the library";
+
+/**
+ * Whether this page is in a private window (F§10.2's save rule).
+ *
+ * A content script has `chrome.extension` — measured on this host — and the flag is the browser's own. A context
+ * that cannot answer is not a private one, which is the answer that offers the control rather than hiding it.
+ */
+function privateWindow(): boolean {
+  try {
+    return chrome.extension.inIncognitoContext === true;
+  } catch {
+    return false;
+  }
+}
 
 /** Everything the widget is handed. Nothing here is state the widget keeps. */
 export interface WidgetProps {
@@ -138,8 +167,35 @@ export function Widget({
   onDisableSite,
 }: WidgetProps) {
   const drag = useRef<{ pointerId: number; x: number; y: number } | null>(null);
+  const [saved, setSaved] = useState(false);
+  const [privateMode] = useState(privateWindow);
   const playing = snapshot?.state === "playing";
   const rate = snapshot?.rate ?? IDLE_SNAPSHOT.rate;
+
+  // Whether the page is in the library is the offscreen document's fact, and it travels with the snapshot the
+  // widget is drawn from; this listener only reads it — it answers nothing, so it competes with nobody for a
+  // reply (the rule U-036 measured for a second listener in a content script).
+  useEffect(() => {
+    const listener = (raw: unknown): undefined => {
+      const message = parseExtMessage(raw);
+      if (message !== null && message.type === "ext/snapshot") setSaved(message.saved === true);
+      return undefined;
+    };
+    chrome.runtime.onMessage.addListener(listener);
+    return () => {
+      chrome.runtime.onMessage.removeListener(listener);
+    };
+  }, []);
+
+  /**
+   * Ask the extension to keep this page. The answer is the worker's, not the library's — the worker has no
+   * handler for a save — so the reply is deliberately not read: the next snapshot carries the offscreen
+   * document's own answer, which is what the button draws.
+   */
+  function save(): void {
+    const request: ExtMessage = { type: "ext/save-page" };
+    void chrome.runtime.sendMessage(request).catch(() => undefined);
+  }
 
   function play(): void {
     // Nothing loaded, or a document already read to its end: what the reader wants is a reading, which is the
@@ -231,6 +287,17 @@ export function Widget({
       <div className="lectern-widget__actions">
         <SpeedControl baseWpm={BASE_WPM_SEED} onCommand={onCommand} rate={rate} />
         {grip}
+        {privateMode ? null : (
+          <button
+            aria-label={saved ? SAVED_LABEL : SAVE_LABEL}
+            className="lectern-button lectern-widget__action"
+            disabled={snapshot === null || snapshot.docId === null}
+            onClick={save}
+            type="button"
+          >
+            {saved ? "Saved" : "Save"}
+          </button>
+        )}
         <button
           aria-label="Disable the player on this site"
           className="lectern-button lectern-widget__action"

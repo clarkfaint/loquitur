@@ -10,7 +10,10 @@
  * The player it hosts is U-013's frozen controller over U-024's sink and U-021's caching chunk source. This file
  * is the wiring and nothing else:
  *
- * - one `DocumentModel` lives in memory while it is being read and is never written down (the contract's rule);
+ * - one `DocumentModel` lives in memory while it is being read and is written down only when the reader presses
+ *   the widget's Save button (F§10.2's rule, Phase 5) — never because a page was opened;
+ * - the library the save writes into is F§5.9's records in this document's own IndexedDB, over the same
+ *   connection the audio cache uses, and F§8.2's engine is what carries them to the hub;
  * - a settings change rebuilds the hub client and the chunk source, behind a `ChunkSource` the controller already
  *   holds, so a reading in progress is not torn down to change where the next chunk comes from;
  * - the player's state is published on every change and, while it is playing, sampled and published at most
@@ -22,18 +25,29 @@
  * which is what the listener below acts on.
  */
 
-import { createCachingChunkSource, createHubClient, type HubClient } from "@lectern/api-client";
+import {
+  createCachingChunkSource,
+  createHubClient,
+  createSyncClient,
+  createSyncEngine,
+  type HubClient,
+  type SyncEngine,
+  type SyncGunzip,
+  type SyncGzip,
+} from "@lectern/api-client";
 import {
   type ChunkSource,
   type Clock,
   createPlayerController,
   type DocumentModel,
   type DocumentProvider,
+  type LibraryStore,
   type PlayerSettings,
   type PlayerSnapshot,
 } from "@lectern/core";
-import { createHtmlAudioQueueSink, createIdbBlobCache, openLecternDb } from "@lectern/ui-web";
+import { createHtmlAudioQueueSink, createIdbBlobCache, createIdbLibraryStore, getDeviceId, openLecternDb } from "@lectern/ui-web";
 import { OFFSCREEN_PORT, type OffscreenSettings, OffscreenSettingsMessageSchema } from "../../src/background/offscreen";
+import { recordProgress, savePage } from "../../src/library/save-page";
 import { type ExtMessage, type ExtReply, failReply, messageOf, okReply, parseExtMessage } from "../../src/messages";
 
 /** How often the player is sampled while it is playing: the contract's own ceiling. */
@@ -64,6 +78,27 @@ let engine: ChunkSource | null = null;
 
 /** The build the last settings change started, so a read can wait for the source it is about to need. */
 let prepared: Promise<void> = Promise.resolve();
+
+/** The library build of the last settings change: F§5.9's store and F§8.2's engine, or nothing yet. */
+let libraryReady: Promise<void> = Promise.resolve();
+
+/** F§5.9's records for the pages this reader keeps (F§10.2's save). */
+let library: LibraryStore | null = null;
+
+/** F§8.2's round and F§8.3's feed, over the same hub the audio comes from. */
+let sync: SyncEngine | null = null;
+
+/** The document last seen in the library, so a published snapshot can say whether the page is saved. */
+let savedDocId: string | null = null;
+
+/** The last position a progress write was considered for, so a 50 ms sample does not read the store twenty times a second. */
+let lastProgress: string | null = null;
+
+/** The answer a save gets when no page is loaded. */
+const NO_DOCUMENT = "NO_DOCUMENT";
+
+/** The answer a save gets when the library could not be built — a hub that is not configured. */
+const NO_LIBRARY = "NO_LIBRARY";
 
 /** The three preferences the controller reads while it works, mutated in place so a change needs no rebuild. */
 const preferences: PlayerSettings = {
@@ -120,6 +155,28 @@ let lastState: PlayerSnapshot["state"] | null = null;
 /** The sampling loop's handle, while it runs. */
 let beat: number | null = null;
 
+/** Whether the document being read is one the library holds, which is what the widget's Save button shows. */
+function saved(): boolean {
+  return reading !== null && savedDocId === reading.docId;
+}
+
+/**
+ * Write the reader's place, at most once per position.
+ *
+ * The five-second throttle F§5.9's progress wants belongs to `recordProgress`, which reads the last write's own
+ * timestamp out of the store; this guard is only what keeps a 50 ms sample from asking the store a question
+ * twenty times a second for an answer that cannot have changed.
+ */
+function rememberProgress(snapshot: PlayerSnapshot): void {
+  const key = `${snapshot.state}:${snapshot.docId ?? ""}:${snapshot.sentenceIndex}:${snapshot.wordIndex}`;
+  if (key === lastProgress) return;
+  lastProgress = key;
+  const store = library;
+  const engine = sync;
+  if (store === null || engine === null) return;
+  void recordProgress(store, engine, snapshot).catch(() => undefined);
+}
+
 /**
  * Publish the player's state. `force` is set for a change of state, which is what "on every state change" means
  * here; a sample taken by the loop is rate-limited to one per 50 ms, which is what "at most every 50 ms" means.
@@ -129,7 +186,8 @@ function publish(force: boolean): void {
   const at = Date.now();
   if (!force && at - lastPublished < SNAPSHOT_INTERVAL_MS) return;
   lastPublished = at;
-  void chrome.runtime.sendMessage({ type: "ext/snapshot", snapshot, title: title() }).catch(() => undefined);
+  void chrome.runtime.sendMessage({ type: "ext/snapshot", snapshot, title: title(), saved: saved() }).catch(() => undefined);
+  rememberProgress(snapshot);
 }
 
 /** Run the sampling loop exactly while the player is playing. */
@@ -160,6 +218,75 @@ async function buildSource(settings: OffscreenSettings): Promise<void> {
   engine = createCachingChunkSource({ client: built, cache });
 }
 
+/** F§7.2's model body: the JSON text as a gzip container, over this document's own compressor. */
+const gzipText: SyncGzip = async (text) => {
+  const compressed = new Blob([text]).stream().pipeThrough(new CompressionStream("gzip"));
+  return new Uint8Array(await new Response(compressed).arrayBuffer());
+};
+
+/** F§7.2's model body read back: the container as the JSON text it holds. */
+const gunzipText: SyncGunzip = async (bytes) => {
+  // A fresh, exactly-sized copy: a `Uint8Array` view of a shared buffer is not a `BlobPart` in this repo's
+  // DOM types, and the container is what the blob is for.
+  const decompressed = new Blob([new Uint8Array(bytes)]).stream().pipeThrough(new DecompressionStream("gzip"));
+  return await new Response(decompressed).text();
+};
+
+/**
+ * Build F§5.9's records and F§8.2's engine for the connection the settings describe.
+ *
+ * The store is this document's own — the same IndexedDB connection the audio cache lives on, and the same
+ * identity (`getDeviceId`), so a page saved here and a chunk cached here are the same installation's — while the
+ * engine is U-058's, driven by the document's own clock and the browser's reachability signal. It is started,
+ * which is what gives F§8.3's five-minute pull and its first round; a hub nobody can reach is a state the engine
+ * reports rather than an exception this file has to handle.
+ */
+async function buildLibrary(settings: OffscreenSettings): Promise<void> {
+  const db = await connection();
+  const store = createIdbLibraryStore({
+    db,
+    deviceId: await getDeviceId(db),
+    now: () => Date.now(),
+    newId: () => crypto.randomUUID(),
+  });
+  library = store;
+  const built = createSyncClient({
+    baseUrl: settings.hubUrl,
+    token: settings.token,
+    fetch: (input, init) => globalThis.fetch(input, init),
+    gzip: gzipText,
+    gunzip: gunzipText,
+  });
+  const previous = sync;
+  const engine = createSyncEngine({
+    store,
+    client: built,
+    clock: CLOCK,
+    isOnline: () => globalThis.navigator.onLine,
+    gzip: gzipText,
+    gunzip: gunzipText,
+  });
+  sync = engine;
+  previous?.stop();
+  await engine.start();
+}
+
+/**
+ * Whether the library already holds a document, answered as the identifier the snapshot publishes.
+ *
+ * One store read, taken when a reading starts rather than on every published snapshot: whether the page is
+ * saved cannot change while it is being read except by the Save button, which is what the caller does next.
+ */
+async function knownSaved(docId: string): Promise<string | null> {
+  const store = library;
+  if (store === null) return null;
+  try {
+    return (await store.getDocumentMeta(docId)) === null ? null : docId;
+  } catch {
+    return null;
+  }
+}
+
 /**
  * Take the settings the worker pushed: remember them, mirror the furniture rule into the player's preferences,
  * and — only when the hub itself moved — rebuild the client. Voice and speed are handed to the player as
@@ -170,10 +297,14 @@ function applySettings(next: OffscreenSettings): void {
   hub = next;
   preferences.skipFurniture = next.skipFurniture;
   if (previous === null || previous.hubUrl !== next.hubUrl || previous.token !== next.token) {
-    // The build is remembered rather than awaited, so a settings push stays synchronous and a message handler
-    // is never blocked by it; `readDocument` waits for it before it asks the hub for anything.
+    // The builds are remembered rather than awaited, so a settings push stays synchronous and a message handler
+    // is never blocked by it; `readDocument` and the Save button wait for the ones they need. They are two
+    // promises because they fail apart: a library that could not be opened is no reason to stop playing, and a
+    // hub nobody can reach is no reason to stop keeping pages in the local library.
     prepared = buildSource(next);
     prepared.catch(() => undefined);
+    libraryReady = buildLibrary(next);
+    libraryReady.catch(() => undefined);
   }
   if (previous === null) return;
   if (previous.rate !== next.rate) void controller.dispatch({ type: "setRate", rate: next.rate });
@@ -204,6 +335,10 @@ async function readDocument(document: DocumentModel, startSentence: number | und
   await prepared.catch(() => undefined);
   if (engine === null) return failReply("OFFSCREEN_UNAVAILABLE", "the hub could not be configured");
   reading = document;
+  // The library is the local half of the same connection, so a save is offered only once it is there; whether
+  // this page is already saved is asked once, here, rather than on every published snapshot.
+  await libraryReady.catch(() => undefined);
+  savedDocId = await knownSaved(document.docId);
   const voiceId = await voiceFor(settings);
   if (voiceId !== "") await controller.dispatch({ type: "setVoice", voiceId });
   await controller.dispatch({ type: "setRate", rate: settings.rate });
@@ -214,6 +349,27 @@ async function readDocument(document: DocumentModel, startSentence: number | und
   });
   await controller.dispatch({ type: "play" });
   return okReply(null);
+}
+
+/**
+ * Keep the page being read in the library (F§10.2's Save button, Phase 5).
+ *
+ * A save with nothing loaded is refused by name, and so is one the library could not be built for — a hub the
+ * reader has not configured — because those are different answers to the reader's press and the widget shows the
+ * page as saved only when the offscreen document says it is. On success the state is published at once, so the
+ * widget's own button changes without waiting for the next sample.
+ */
+async function saveCurrent(): Promise<ExtReply> {
+  const document = reading;
+  if (document === null) return failReply(NO_DOCUMENT, "no page is being read");
+  await libraryReady.catch(() => undefined);
+  const store = library;
+  const engine = sync;
+  if (store === null || engine === null) return failReply(NO_LIBRARY, "the hub is not configured yet");
+  const result = await savePage({ store, engine, document, now: Date.now() });
+  savedDocId = result.docId;
+  publish(true);
+  return okReply(result);
 }
 
 /** Do what one instruction asks. */
@@ -228,6 +384,7 @@ async function handle(message: ExtMessage): Promise<ExtReply> {
     await controller.dispatch({ type: "stop" });
     return okReply(null);
   }
+  if (message.type === "ext/save-page") return await saveCurrent();
   return failReply("NO_HANDLER", `the offscreen document does not handle ${message.type}`);
 }
 
@@ -235,8 +392,10 @@ chrome.runtime.onMessage.addListener((raw, sender, sendResponse) => {
   const message = parseExtMessage(raw);
   if (message === null) return undefined;
   // Only the background drives playback: a copy that carries a tab is a page's or a content script's own, and
-  // the background is relaying the one that acts.
-  if (sender.tab !== undefined) return undefined;
+  // the background is relaying the one that acts. The one exception is the widget's own Save request, which is
+  // *sent* from the page it is on because the page cannot reach the library itself, and which is answered only
+  // here — the worker has no handler for it, so its own refusal is not this document's answer to read.
+  if (sender.tab !== undefined && message.type !== "ext/save-page") return undefined;
   void handle(message).then(sendResponse, (cause: unknown) => sendResponse(failReply("HANDLER_FAILED", messageOf(cause))));
   return true;
 });
