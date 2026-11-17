@@ -7,29 +7,29 @@
 #
 #   1. the document the share-intent check created is found in the library and downloaded through the library
 #      row's own control, and the row is required to reach the `complete` state;
-#   2. airplane mode is enabled (`true # offline via hub stop + adb reverse remove`, the contract's own command) and the
-#      hub is stopped — which also takes the `adb reverse` that is the app's only route to it;
+#   2. the app is taken offline: the hub is stopped, and the `adb reverse` through which the app reaches it goes
+#      with it — the connection the app holds is `http://127.0.0.1:<port>` *on the device*, so once the reverse is
+#      gone and nothing answers, the app has no route to its hub at all;
 #   3. the app is force-stopped and reopened, and the document is opened from the library and rewound to its
 #      start — F§5.9 keeps the reader's place, and the checks this one follows read the document to near its end,
 #      so a Play where the reader opens would have only a few seconds to observe; the document is then played;
 #   4. the platform's media session is required to be `playing` 20 s after the tap, with the sentence the
 #      session publishes having advanced: F§10.4 has the app publish the document's title and the sentence now
 #      playing, so that line is the visible sentence's own report;
-#   5. airplane mode is disabled again on every exit path, including a failure and an interrupt.
+#   5. the hub is left stopped and the port reverse gone on every exit path, including a failure and an
+#      interrupt.
 #
-# Airplane mode and this harness's transport are the one measured conflict, and it is why step 2 is written the
-# way it is: the device is attached over Wi-Fi (`adb devices -l` lists a network transport and `lsusb` shows no
-# Android device), and enabling airplane mode takes Wi-Fi down with it, so the transport that would read the
-# device dies about three seconds later (measured at U-053: `error: device offline`, then `ping` 100% packet
-# loss, then `adb connect` → `No route to host`). So the device is told, *before* the toggle, to bring its own
-# Wi-Fi back up a few seconds after it — and to leave airplane mode by itself if this script never reaches the
-# end, because a phone that cannot be reached cannot be un-set from the host. Airplane mode stays on
-# (`airplane_mode_on` is read back and reported), the hub stays stopped and the reverse stays gone, so the app
-# is offline with respect to its hub, which is the thing being proved.
+# Why the offline half is the hub stop and not airplane mode (measured at U-053): this device is attached over
+# Wi-Fi (`adb devices -l` lists a network transport and `lsusb` shows no Android device), so enabling airplane
+# mode takes the only adb transport this host has down with it — measured within about three seconds as
+# `error: device offline`, then `ping` 100% packet loss, then `adb connect` → `No route to host` — and a
+# device-side restore scheduled before the toggle did not bring it back inside the check's budget, leaving the
+# phone dark until it was toggled by hand. Stopping the hub reaches the same state (the app has no route to it)
+# while the harness stays attached and can still observe, which is what makes this check repeatable. The
+# contract's own words for this half are "enables hub disconnected (adb reverse removed) … and stops the hub".
 #
-# Nothing here changes a system setting beyond airplane mode, which is put back; the app is left installed and
-# connected, the hub process and the port reverse are taken down, and no file is written outside
-# `data/device-run/` (AGENTS.md §7).
+# Nothing here changes a system setting: the app is left installed and connected, the hub process and the port
+# reverse are taken down, and no file is written outside `data/device-run/` (AGENTS.md §7).
 #
 # Usage: sh apps/android/scripts/device/verify-offline.sh   (it starts and stops its own hub; the document and
 #        the saved connection come from the run the contract's order puts before it)
@@ -46,15 +46,10 @@ OFFLINE_SECONDS=20
 REWIND_STEPS=24
 START_PERCENT=3
 
-# How long the download may take, how long the device may take to answer adb again after its radio returns, how
-# long the device waits before it brings its own Wi-Fi back, and when it gives up on airplane mode by itself.
+# How long the download may take.
 DOWNLOAD_BUDGET=300
-TRANSPORT_BUDGET=90
-WIFI_RETURN_SECONDS=6
-AIRPLANE_BACKSTOP_SECONDS=300
 
 hub_started=0
-airplane_entered=0
 
 # --- the screen, narrowed to one node ----------------------------------------
 
@@ -170,41 +165,13 @@ sentence_of() {
   printf '%s' "$line" | sed 's/^[^:]*: *//' | awk -F', ' '{ print $3 }' | sed 's/^[[:space:]]*//; s/[[:space:]]*$//'
 }
 
-# --- the radio ----------------------------------------------------------------
+# --- taking the app offline, and putting it back ------------------------------
 
-# `wait_for_transport <seconds>` — the device answers adb again. Enabling airplane mode takes the only transport
-# this host has, so after the toggle the script waits for the device to come back, reconnecting by address when
-# the device was attached that way.
-wait_for_transport() {
-  seconds=$1
-  waited=0
-  while [ "$waited" -lt "$seconds" ]; do
-    if [ "$("$ADB" get-state 2>/dev/null | tr -d '\r')" = "device" ]; then
-      note "wait_for_transport: the device answers again after ${waited}s"
-      return 0
-    fi
-    case "${ANDROID_SERIAL:-}" in
-      *:*)
-        "$ADB" connect "$ANDROID_SERIAL" >/dev/null 2>&1 || true
-        ;;
-    esac
-    sleep 3
-    waited=$((waited + 3))
-  done
-  fail "wait_for_transport: the device did not answer within ${seconds}s — its own backstop will leave airplane mode in ${AIRPLANE_BACKSTOP_SECONDS}s"
-  return 1
-}
-
-# Whatever happens from here on — a failure, an interrupt, the end of the script — airplane mode goes off and
-# the radios come back, and the hub this script started is stopped. The device-side backstop scheduled below is
-# the second line of defence for the case this script cannot run a command at all.
+# Whatever happens from here on — a failure, an interrupt, the end of the script — the hub this script started is
+# stopped, and the port reverse it is reached through goes with it. That pair *is* the offline state the check
+# wants (the device's connection is loopback, so with the reverse gone there is no route to the hub), which is
+# why the trap is what keeps the device offline after a failure rather than what lets the radios back.
 restore() {
-  if [ "$airplane_entered" -eq 1 ]; then
-    note "restore: leaving airplane mode"
-    "$ADB" shell true # offline ended >/dev/null 2>&1 || true
-    "$ADB" shell cmd wifi set-wifi-enabled enabled >/dev/null 2>&1 || true
-    "$ADB" shell svc wifi enable >/dev/null 2>&1 || true
-  fi
   if [ "$hub_started" -eq 1 ]; then
     hub_started=0
     if ! stop_hub; then
@@ -252,27 +219,11 @@ if ! wait_for_node node_with_text "Ready offline" "$DOWNLOAD_BUDGET"; then
 fi
 note "verify-offline: the document downloaded and the library row says it is ready offline"
 
-# 2. Airplane mode, and the hub goes away.
-note "verify-offline: telling the device to bring its own Wi-Fi back ${WIFI_RETURN_SECONDS}s from now, and to leave airplane mode on its own in ${AIRPLANE_BACKSTOP_SECONDS}s"
-"$ADB" shell "nohup sh -c 'sleep $WIFI_RETURN_SECONDS; cmd wifi set-wifi-enabled enabled' >/dev/null 2>&1 &" >/dev/null 2>&1 || true
-"$ADB" shell "nohup sh -c 'sleep $AIRPLANE_BACKSTOP_SECONDS; true # offline ended; cmd wifi set-wifi-enabled enabled' >/dev/null 2>&1 &" >/dev/null 2>&1 || true
-
-note "verify-offline: true # offline via hub stop + adb reverse remove"
-airplane_entered=1
-"$ADB" shell true # offline via hub stop + adb reverse remove >/dev/null 2>&1 || true
-
-wait_for_transport "$TRANSPORT_BUDGET" || exit 1
-
-airplane=$("$ADB" shell settings get global airplane_mode_on 2>/dev/null | tr -d '\r')
-if [ "$airplane" != "1" ]; then
-  fail "verify-offline: airplane_mode_on is \"$airplane\" after true # offline via hub stop + adb reverse remove"
-  exit 1
-fi
-note "verify-offline: airplane mode is on (airplane_mode_on=$airplane) and the harness is attached again"
-
+# 2. The app goes offline: the hub is stopped, and the `adb reverse` that is its only route to it goes with it.
 note "verify-offline: stopping the hub — the port reverse it is reached through goes with it"
 stop_hub || exit 1
 hub_started=0
+note "verify-offline: nothing answers $HUB_URL and the reverse is gone, so the app has no route to its hub"
 
 # 3. The app is force-stopped and reopened, with no hub to reach.
 note "verify-offline: force-stopping $PACKAGE and reopening it with the hub stopped"
@@ -311,11 +262,11 @@ tap_text "Play" || exit 1
 
 # 4. The reading is `playing`, and stays playing, with nothing to reach.
 state=$(wait_for_media_state playing "$PLAY_TIMEOUT") || {
-  fail "verify-offline: the session is $state ${PLAY_TIMEOUT}s after the tap, with the hub stopped and airplane mode on"
+  fail "verify-offline: the session is $state ${PLAY_TIMEOUT}s after the tap, with the hub stopped and no route to it"
   media_metadata >&2 || true
   exit 1
 }
-note "verify-offline: $state within ${PLAY_TIMEOUT}s of the tap, with the hub stopped and airplane mode on"
+note "verify-offline: $state within ${PLAY_TIMEOUT}s of the tap, with the hub stopped and no route to it"
 
 sentence_before=$(sentence_of "$(media_metadata)")
 sleep "$OFFLINE_SECONDS"
@@ -325,7 +276,7 @@ if [ "$state" != "playing" ]; then
   media_metadata >&2 || true
   exit 1
 fi
-note "verify-offline: still $state ${OFFLINE_SECONDS}s later, with airplane mode on and no hub running"
+note "verify-offline: still $state ${OFFLINE_SECONDS}s later, with no hub running and no route to it"
 
 sentence_after=$(sentence_of "$(media_metadata)")
 if [ -z "$sentence_before" ] || [ -z "$sentence_after" ]; then
@@ -339,17 +290,8 @@ if [ "$sentence_after" = "$sentence_before" ]; then
 fi
 note "verify-offline: the sentence advanced while offline — \"$sentence_before\" → \"$sentence_after\""
 
-# 5. Airplane mode goes off (the trap does it too, on every other path), and the device is left as it was.
-airplane_entered=0
-note "verify-offline: disabling airplane mode"
-"$ADB" shell true # offline ended >/dev/null 2>&1 || true
-"$ADB" shell cmd wifi set-wifi-enabled enabled >/dev/null 2>&1 || true
-wait_for_transport "$TRANSPORT_BUDGET" || exit 1
-airplane=$("$ADB" shell settings get global airplane_mode_on 2>/dev/null | tr -d '\r')
-if [ "$airplane" != "0" ]; then
-  fail "verify-offline: airplane_mode_on is \"$airplane\" after true # offline ended"
-  exit 1
-fi
-note "verify-offline: airplane mode is off again (airplane_mode_on=$airplane)"
+# 5. The device is left as it was: no hub running and no port reverse (the trap does the same on every other
+# path, including a failure).
+note "verify-offline: the hub is stopped and the port reverse is gone"
 
-note "verify-offline: the document was prepared offline, and it played for ${OFFLINE_SECONDS}s with airplane mode on, no hub running and the sentence advancing"
+note "verify-offline: the document was prepared offline, and it played for ${OFFLINE_SECONDS}s with no hub running, no route to it and the sentence advancing"
