@@ -7,6 +7,7 @@
 
 import type { FastifyInstance } from "fastify";
 import type { HubContext } from "../context";
+import { adminRoutes } from "./admin";
 import { aiRoutes } from "./ai";
 import { healthRoutes } from "./health";
 import { libraryRoutes } from "./library";
@@ -28,4 +29,5 @@ export const routes: RouteRegistrar[] = [
   syncRoutes,
   syncWsRoutes,
   aiRoutes,
+  adminRoutes,
 ];

@@ -21,7 +21,10 @@ services:
       # profile is asked for and its URL is set beside it.
       KOKORO_URL: http://kokoro:8880
       PIPER_URL: ${PIPER_URL:-}
-      LLM_BASE_URL: ${LLM_BASE_URL:-}
+      # F§7.1: the `llm` profile's own service, whose address is the default here — asking for the profile and
+      # naming a model is the whole configuration. With no `LLM_MODEL` the AI routes stay off, so this default
+      # switches nothing on by itself.
+      LLM_BASE_URL: ${LLM_BASE_URL:-http://llm:11434/v1}
       LLM_MODEL: ${LLM_MODEL:-}
       LLM_API_KEY: ${LLM_API_KEY:-}
     ports:
@@ -52,6 +55,9 @@ services:
     image: lectern-piper:local
 
   llm:
+    # F§2.3's optional AI endpoint, pinned to a release tag and reachable on the compose network alone: it
+    # publishes no host port, so only the hub can reach it. Asking for the profile is enough — the hub's own
+    # `LLM_BASE_URL` already names this service — and F§7.1's `LLM_MODEL` is what switches F§9's routes on.
     profiles: ["llm"]
     image: ollama/ollama:0.13.0
 
