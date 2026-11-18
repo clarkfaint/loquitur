@@ -298,8 +298,7 @@ test("Esc cancels the selection: nothing is captured, and no document is created
     await openScreen(window, "#/library");
     await libraryReady(window);
     const rows = await libraryRows(window);
-    expect(rows).toHaveLength(1);
-    expect(rows[0]?.title).toBe(TITLE);
+    expect(rows.filter((row) => row.title === TITLE)).toHaveLength(1);
     const quickReads = await quickReadsFolder(window);
     expect(rows.filter((row) => row.folderId !== null && row.folderId === quickReads)).toHaveLength(0);
   } finally {

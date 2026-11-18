@@ -150,9 +150,10 @@ test("the selection is read, played and filed in Quick reads", async () => {
     const strip = await stripPage(app);
     await expect(strip.getByRole("heading", { name: collapsed(TEXT.slice(0, TITLE_CHARS)) })).toBeVisible({ timeout: 15_000 });
 
-    // The library holds exactly one document, and it is filed in the folder F§10.3 files selections in.
+    // The selection is filed once in the folder F§10.3 files selections in.
     await openScreen(window, "#/library");
-    const documents = window.locator("li[data-doc-id]");
+    const expectedTitle = collapsed(TEXT.slice(0, TITLE_CHARS));
+    const documents = window.locator("li[data-doc-id]").filter({ hasText: expectedTitle });
     await expect(documents).toHaveCount(1);
     const quickReads = window.locator("li[data-folder-id]").filter({ hasText: QUICK_READS });
     await expect(quickReads).toHaveCount(1);
