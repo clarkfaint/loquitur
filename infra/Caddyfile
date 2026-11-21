@@ -1,0 +1,65 @@
+# The `https` profile's front door: one HTTPS origin for the web app, the hub's API and the client downloads.
+#
+# Browsers give the web app `crypto.randomUUID()` and a service worker only in a secure context, and an HTTPS
+# page may not call a plain-HTTP API, so the reader and the hub are served together here, over TLS from
+# Caddy's own local certificate authority. Install that authority's root certificate once on every device that
+# opens the web app; it is published over plain HTTP at /lectern-root-ca.crt so a device can fetch it before it
+# trusts anything. The root lives in the `caddy-data` volume: keep that volume and the root never changes.
+#
+# LECTERN_HTTPS_HOSTS (infra/.env) lists the names and addresses the certificate covers, space-separated;
+# LECTERN_HTTPS_DEFAULT_SNI is the one served to a client that connects by IP (usually the hub's LAN address).
+
+{
+	local_certs
+	skip_install_trust
+	# The :80 site below does the redirect itself, so it can leave the root certificate on plain HTTP.
+	auto_https disable_redirects
+	# A client that connects by IP address sends no server name (SNI), so name the certificate it gets.
+	default_sni {$LECTERN_HTTPS_DEFAULT_SNI:localhost}
+}
+
+(lectern_root_ca) {
+	handle /lectern-root-ca.crt {
+		root * /data/caddy/pki/authorities/local
+		rewrite * /root.crt
+		header Content-Type application/x-x509-ca-cert
+		header Content-Disposition "attachment; filename=lectern-root-ca.crt"
+		file_server
+	}
+}
+
+{$LECTERN_HTTPS_HOSTS:localhost} {
+	tls internal
+
+	import lectern_root_ca
+
+	# The hub: every route of F§7.2, the sync WebSocket included (reverse_proxy upgrades it).
+	handle /v1/* {
+		reverse_proxy hub:8787
+	}
+	handle /healthz {
+		reverse_proxy hub:8787
+	}
+
+	# Built clients, published from the build machine into LECTERN_CLIENTS_DIR/downloads.
+	handle /downloads* {
+		root * /srv
+		file_server
+	}
+
+	# The web app (its own build in LECTERN_CLIENTS_DIR/web). Its router is hash-based, so a path is a file.
+	handle {
+		root * /srv/web
+		header /sw.js Cache-Control "no-cache"
+		header /index.html Cache-Control "no-cache"
+		file_server
+	}
+}
+
+# Plain HTTP: only the root certificate, so a new device can fetch it; everything else moves to HTTPS.
+:80 {
+	import lectern_root_ca
+	handle {
+		redir https://{host}{uri} permanent
+	}
+}

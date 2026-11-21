@@ -10,6 +10,7 @@ name: lectern
 
 services:
   hub:
+    restart: unless-stopped
     build:
       context: ..
       dockerfile: infra/Dockerfile
@@ -36,6 +37,7 @@ services:
         condition: service_healthy
 
   kokoro:
+    restart: unless-stopped
     # F§2.3's engine, pinned to the newest release whose voice list has the shape F§6 describes; see this
     # unit's evidence file for the measurement that decided the tag.
     image: ghcr.io/remsky/kokoro-fastapi-cpu:v0.3.0
@@ -47,6 +49,7 @@ services:
       start_period: 120s
 
   piper:
+    restart: unless-stopped
     profiles: ["piper"]
     build:
       context: ..
@@ -55,13 +58,38 @@ services:
     image: lectern-piper:local
 
   llm:
+    restart: unless-stopped
     # F§2.3's optional AI endpoint, pinned to a release tag and reachable on the compose network alone: it
     # publishes no host port, so only the hub can reach it. Asking for the profile is enough — the hub's own
     # `LLM_BASE_URL` already names this service — and F§7.1's `LLM_MODEL` is what switches F§9's routes on.
     profiles: ["llm"]
     image: ollama/ollama:0.13.0
 
+  caddy:
+    restart: unless-stopped
+    # The `https` profile (see Caddyfile): one HTTPS origin in front of the hub that also serves the web app and the
+    # client downloads, from LECTERN_CLIENTS_DIR, which the build machine publishes into. The hub's own 8787 stays
+    # published for clients that speak plain HTTP to it (the Android app).
+    profiles: ["https"]
+    image: caddy:2.10.2-alpine
+    environment:
+      LECTERN_HTTPS_HOSTS: ${LECTERN_HTTPS_HOSTS:-localhost}
+      LECTERN_HTTPS_DEFAULT_SNI: ${LECTERN_HTTPS_DEFAULT_SNI:-localhost}
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - ${LECTERN_CLIENTS_DIR:-./clients}:/srv:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    depends_on:
+      - hub
+
 volumes:
   # One named volume holds everything F§7.1's `LECTERN_DATA_DIR` writes: the TTS cache, the documents and the
   # OCR language data. A backup is a copy of it while the hub is stopped.
   lectern-data:
+  # The `https` profile's local certificate authority and certificates: keep it, or every device must trust a new root.
+  caddy-data:
+  caddy-config:

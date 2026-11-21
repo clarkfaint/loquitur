@@ -44,7 +44,13 @@ async function testHub(settings: ExtSettings): Promise<ConnectionReport> {
   if (!isHttpUrl(settings.hubUrl) || settings.token === "") {
     return { notice: "Saved. A hub URL and token are both needed to test the connection.", voices: [] };
   }
-  const client = createHubClient({ baseUrl: settings.hubUrl, token: settings.token, fetch: globalThis.fetch });
+  // Wrapped, as the offscreen document does: the client calls `options.fetch(...)`, and a browser's `fetch` invoked
+  // with any receiver but the global object throws "Illegal invocation".
+  const client = createHubClient({
+    baseUrl: settings.hubUrl,
+    token: settings.token,
+    fetch: (input, init) => globalThis.fetch(input, init),
+  });
   try {
     await client.health();
     const voices = await client.voices();

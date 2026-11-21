@@ -253,8 +253,25 @@ test("a service that never answers is ENGINE_UNAVAILABLE rather than a hang", as
   expect(unlisted?.message).toContain("/voices");
 });
 
+test("piper-tts 1.8.0's own answer, an object keyed by voice name, is read as that service's voices", async () => {
+  const answer = {
+    "en_US-lessac-medium": { audio: { quality: "medium", sample_rate: 22050 }, language: { code: "en_US" } },
+    "de_DE-thorsten-medium": { audio: { quality: "medium", sample_rate: 22050 }, language: { code: "de_DE" } },
+  };
+  const engine = createPiperEngine({ baseUrl, fetch: answersJson(answer) });
+  const voices = await engine.listVoices();
+  expect(voices.map((voice) => voice.id)).toEqual(["piper:en_US-lessac-medium", "piper:de_DE-thorsten-medium"]);
+  expect(voices.map((voice) => voice.lang)).toEqual(["en", "de"]);
+});
+
 test("a voice list this adapter cannot read is ENGINE_UNAVAILABLE rather than an empty list", async () => {
-  for (const value of [{ nope: true }, "not a list", ["", "en_US-lessac-medium"], { voices: "en_US-lessac-medium" }]) {
+  for (const value of [
+    { nope: true },
+    "not a list",
+    ["", "en_US-lessac-medium"],
+    { voices: "en_US-lessac-medium" },
+    { "en_US-lessac-medium": "not a config" },
+  ]) {
     const engine = createPiperEngine({ baseUrl, fetch: answersJson(value) });
     const refused = await refusalOf(engine.listVoices());
     expect(refused?.code).toBe("ENGINE_UNAVAILABLE");

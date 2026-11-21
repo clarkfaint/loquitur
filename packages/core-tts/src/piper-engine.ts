@@ -81,10 +81,13 @@ export class PiperEngineError extends Error {
 /**
  * The voice list (F§6): voices come from the service, never from a list in this file. F§6 fixes the endpoint,
  * not the envelope, so a service names a voice as a bare id or as an object carrying it and answers either
- * those entries or an object holding them; an entry with no name is not a voice and is refused.
+ * those entries or an object holding them; an entry with no name is not a voice and is refused. piper-tts's own
+ * HTTP server (1.8.0, the image F§2.3 builds) answers a third form: an object keyed by voice name whose values
+ * are each voice's model config, so a key counts as a voice only when its value is such an object.
  */
 const VoiceEntrySchema = z.union([z.string().min(1), z.object({ name: z.string().min(1) })]);
-const VoicesSchema = z.union([z.array(VoiceEntrySchema), z.object({ voices: z.array(VoiceEntrySchema) })]);
+const VoiceConfigMapSchema = z.record(z.string().min(1), z.looseObject({}));
+const VoicesSchema = z.union([z.array(VoiceEntrySchema), z.object({ voices: z.array(VoiceEntrySchema) }), VoiceConfigMapSchema]);
 
 /** What an operator configures the adapter with (F§6). */
 export interface PiperEngineOptions {
@@ -214,7 +217,8 @@ export function createPiperEngine(options: PiperEngineOptions): TtsEngine {
       if (!parsed.success) {
         throw new PiperEngineError("ENGINE_UNAVAILABLE", `${voicesUrl} answered no readable voice list at ${issuePaths(parsed.error)}`);
       }
-      const entries = Array.isArray(parsed.data) ? parsed.data : parsed.data.voices;
+      const data = parsed.data;
+      const entries = Array.isArray(data) ? data : Array.isArray(data.voices) ? data.voices : Object.keys(data);
       return entries.map((entry) => toVoice(typeof entry === "string" ? entry : entry.name));
     },
 
