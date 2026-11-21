@@ -11,6 +11,20 @@ across the web, a Chrome extension, a desktop app and an Android phone.
 
 ---
 
+## Why "Loquitur"?
+
+*Loquitur* is Latin for **"it speaks."** It comes from the legal maxim *res ipsa loquitur*, "the thing speaks for
+itself." In tort law, the doctrine applies when an accident speaks for itself: the event couldn't ordinarily have
+happened without someone's negligence, so the facts carry the argument without further explanation.
+
+That's what this app does for your reading. You hand it a document, and the document speaks for itself, in its own
+words, at your pace, on any device you own.
+
+The project started under the working name *Lectern*, the stand a reader reads aloud from. *Loquitur* keeps that
+idea, but names what the app does rather than where the reading happens.
+
+---
+
 ## Features
 
 - **Reads almost anything:** PDF, EPUB, DOCX, plain text and web pages. Scanned PDFs and images go through OCR on
@@ -181,9 +195,9 @@ The v1 scope is complete. These items are designed for but not built yet: chat w
 translation, a pronunciation dictionary, and on-device synthesis without the hub. iOS, macOS and Safari are out of
 scope.
 
-## A note on the name
+## Why the code still says `lectern`
 
-The project started under the working name **Lectern**, and readers now see it as **Loquitur**. Package names
+Readers see the app as **Loquitur** (see [Why "Loquitur"?](#why-loquitur)). Package names
 (`@lectern/*`), app IDs, environment variables (`LECTERN_*`), the `lectern://` link scheme and storage names keep
 the original name on purpose: renaming them would make every installed client a new app and orphan its data.
 [`docs/history-rewrite.md`](docs/history-rewrite.md) explains why the commit hashes quoted in the build records
