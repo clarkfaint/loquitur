@@ -2,7 +2,7 @@
 
 *Res ipsa loquitur*: the thing speaks for itself.
 
-Loquitur is a self-hosted read-aloud system for the documents you already own. It turns PDFs, EPUBs, Word files,
+Loquitur is an open-source, self-hosted read-aloud system for the documents you already own. It turns PDFs, EPUBs, Word files,
 web articles and scanned pages into speech with engines running on your own hardware. While it reads, it highlights
 each word and sentence in time with the audio. Your library, your reading position and your bookmarks follow you
 across the web, a Chrome extension, a desktop app and an Android phone.
@@ -194,6 +194,11 @@ text, styles or assets were used. Third-party code comes in only as declared dep
 The v1 scope is complete. These items are designed for but not built yet: chat with a document and AI quizzes,
 translation, a pronunciation dictionary, and on-device synthesis without the hub. iOS, macOS and Safari are out of
 scope.
+
+## License
+
+Loquitur is open source under the [MIT License](LICENSE). Its third-party dependencies keep their own
+licences; the versions are pinned in `features.md` §2.3.
 
 ## Why the code still says `lectern`
 
