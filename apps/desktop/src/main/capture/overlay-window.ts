@@ -47,7 +47,7 @@ export const OVERLAY_SUBMIT_CHANNEL = "lectern:overlay-submit";
 export const OVERLAY_CANCEL_CHANNEL = "lectern:overlay-cancel";
 
 /** The window's own title, before the page's `<title>` replaces it; `Lectern`, as every window of the shell. */
-const OVERLAY_TITLE = "Lectern";
+const OVERLAY_TITLE = "Loquitur";
 
 /**
  * The rectangle as it arrives from the overlay page: four numbers in that page's own pixels, and nothing else.

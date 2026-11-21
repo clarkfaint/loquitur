@@ -161,7 +161,7 @@ export function createMiniWindow(options: MiniWindowOptions): MiniWindow {
     skipTaskbar: true,
     show: false,
     autoHideMenuBar: true,
-    title: "Lectern",
+    title: "Loquitur",
     webPreferences: {
       preload: options.preload,
       contextIsolation: true,

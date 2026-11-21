@@ -1,6 +1,9 @@
-# Lectern
+# Loquitur
 
-Lectern is a read-aloud system for documents you already own: it parses them, synthesizes speech with engines
+> The app is shown to readers as **Loquitur** (renamed from Lectern on 2026-11-21). Code, packages, IDs and paths
+> keep the `lectern` name on purpose: changing them would reinstall the clients and orphan their data.
+
+Loquitur is a read-aloud system for documents you already own: it parses them, synthesizes speech with engines
 running on your own machine, and reads them to you with word-and-sentence highlighting that follows the audio. A
 hub holds the parsing, the engines, the audio cache, the library and the sync; four clients read from it — a web
 app, a Chrome extension, a desktop application and an Android app — and a document you import on one of them

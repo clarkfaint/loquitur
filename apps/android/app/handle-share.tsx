@@ -71,7 +71,7 @@ function labelFor(action: ShareAction): string {
 
 /** What a row says about its own state. */
 function stateText(row: ShareRow): string {
-  if (row.state === "skipped") return "Lectern did not import this.";
+  if (row.state === "skipped") return "Loquitur did not import this.";
   if (row.state === "failed") return "Could not import this.";
   return row.docIds.length > 1 ? `${row.docIds.length} documents added to the library.` : "Added to the library.";
 }
@@ -169,9 +169,9 @@ export default function HandleShareScreen() {
 
   return (
     <ScrollView style={styles.page} contentContainerStyle={styles.content}>
-      <Stack.Screen options={{ title: "Shared with Lectern" }} />
+      <Stack.Screen options={{ title: "Shared with Loquitur" }} />
 
-      <Text style={styles.heading}>Shared with Lectern</Text>
+      <Text style={styles.heading}>Shared with Loquitur</Text>
 
       {isResolving ? (
         <View style={styles.status} testID="resolving-share">
@@ -195,7 +195,7 @@ export default function HandleShareScreen() {
 
       {nothing ? (
         <Text style={styles.hint} testID="nothing-shared">
-          Nothing was shared with Lectern. Open this screen from another app&apos;s share sheet.
+          Nothing was shared with Loquitur. Open this screen from another app&apos;s share sheet.
         </Text>
       ) : null}
 

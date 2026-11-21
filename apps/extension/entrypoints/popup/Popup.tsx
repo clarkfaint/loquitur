@@ -222,7 +222,7 @@ export function Popup() {
 
       <div className="row">
         <button type="button" disabled={busy} onClick={() => void act({ type: "ext/open-pdf" }, "The PDF was handed to the web app.")}>
-          Open this PDF in Lectern
+          Open this PDF in Loquitur
         </button>
       </div>
 

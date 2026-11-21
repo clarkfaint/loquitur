@@ -33,6 +33,9 @@ const WEB_PAGE = join(__dirname, "..", "..", MAIN_WINDOW_PAGE);
  * lock left over from an earlier one.
  */
 function prepareUserDataDirectory(): string {
+  // A packaged build names its user-data directory after `productName`, which became "Loquitur" in the display
+  // rename. The directory keeps its original "Lectern" name so an installed app finds its hub, token and library.
+  if (app.isPackaged) app.setPath("userData", join(app.getPath("appData"), "Lectern"));
   const directory = settingsDirectory(process.env, app.getPath("userData"));
   if (process.env["LECTERN_USER_DATA"] !== undefined && process.env["LECTERN_USER_DATA"] !== "") {
     // Electron refuses a user-data directory that does not exist yet, so it is made first.
@@ -67,7 +70,7 @@ if (!app.requestSingleInstanceLock()) {
       for (const feature of features) feature(ctx);
     })
     .catch((cause: unknown) => {
-      console.error(`Lectern could not start: ${cause instanceof Error ? cause.message : String(cause)}`);
+      console.error(`Loquitur could not start: ${cause instanceof Error ? cause.message : String(cause)}`);
       app.exit(1);
     });
 }

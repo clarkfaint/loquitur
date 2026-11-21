@@ -29,7 +29,7 @@ export const OFFSCREEN_PORT = "lectern-offscreen";
 const OFFSCREEN_REASON = "AUDIO_PLAYBACK";
 
 /** What the document is for, in the words Chrome may show a reader. */
-const OFFSCREEN_JUSTIFICATION = "Lectern reads a document aloud, and a service worker cannot hold audio.";
+const OFFSCREEN_JUSTIFICATION = "Loquitur reads a document aloud, and a service worker cannot hold audio.";
 
 /** How long a document with nothing loaded is kept before it is closed (the contract's own rule). */
 const IDLE_CLOSE_MS = 30_000;

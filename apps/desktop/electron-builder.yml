@@ -20,7 +20,7 @@
 # root, and the tray and the capture window read them from the application directory at run time.
 
 appId: dev.lectern.desktop
-productName: Lectern
+productName: Loquitur
 
 directories:
   output: dist

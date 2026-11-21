@@ -41,7 +41,7 @@ export interface MainWindowOptions {
 export function createMainWindow(options: MainWindowOptions): BrowserWindow {
   const window = new ElectronBrowserWindow({
     ...MAIN_WINDOW_SIZE,
-    title: "Lectern",
+    title: "Loquitur",
     show: false,
     autoHideMenuBar: true,
     webPreferences: {

@@ -70,7 +70,7 @@ async function start(): Promise<void> {
 async function report(cause: unknown): Promise<void> {
   const message = cause instanceof Error ? cause.message : String(cause);
   // The shell never mounted, so the page itself is the only place left to say what happened.
-  document.body.textContent = `Lectern could not start — ${message}`;
+  document.body.textContent = `Loquitur could not start — ${message}`;
 }
 
 void start().catch(report);

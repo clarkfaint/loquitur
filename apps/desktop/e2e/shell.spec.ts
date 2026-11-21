@@ -37,8 +37,8 @@ function bridgeShape(page: Page): Promise<{ platform: string | null; members: nu
 test("the window is the app's own page, and the renderer carries no Node", async () => {
   const { app, window } = await launchApp();
   try {
-    expect(await window.title()).toBe("Lectern");
-    expect(await app.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows()[0]?.getTitle())).toBe("Lectern");
+    expect(await window.title()).toBe("Loquitur");
+    expect(await app.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows()[0]?.getTitle())).toBe("Loquitur");
 
     const bridge = await bridgeShape(window);
     // F§10.3's union has two members; the shell is built for Linux and Windows.
@@ -118,7 +118,7 @@ test("a navigation off the app's own files is refused", async () => {
 
     // The page never left the app: same address, same document, and still one window.
     expect(await window.evaluate(() => window.location.href)).toBe(before);
-    expect(await window.evaluate(() => document.title)).toBe("Lectern");
+    expect(await window.evaluate(() => document.title)).toBe("Loquitur");
     expect(await windowCount(app)).toBe(1);
   } finally {
     await closeApp(app);
@@ -198,7 +198,7 @@ test("closing hides the window, an action brings it back, and a second launch ex
     expect(second.status).toBe(0);
     await expect.poll(() => firstWindowIsVisible(app), { timeout: 30_000 }).toBe(true);
 
-    expect(await window.title()).toBe("Lectern");
+    expect(await window.title()).toBe("Loquitur");
     expect(await bridgeShape(window)).toEqual({ platform: expect.stringMatching(/linux|win32/u), members: 7 });
   } finally {
     await closeApp(app);

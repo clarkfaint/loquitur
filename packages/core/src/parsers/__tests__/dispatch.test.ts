@@ -218,7 +218,7 @@ test("markup that came from an address is a url, and records the address", async
   expect(fromFile.document.source.uri).toBeUndefined();
 });
 
-test("bytes that are neither a format Lectern reads nor UTF-8 text are UNSUPPORTED_FORMAT", async () => {
+test("bytes that are neither a format Loquitur reads nor UTF-8 text are UNSUPPORTED_FORMAT", async () => {
   const error = await refusalOf(parseDocument({ bytes: NOT_UTF8 }));
   expect(error.code).toBe("UNSUPPORTED_FORMAT");
 });

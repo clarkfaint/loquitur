@@ -470,7 +470,7 @@ export async function parseDocument(input: ParseDocumentInput, deps: ParseDocume
   };
   const identified = resolve(input.bytes, hint);
   if (identified === null) {
-    throw new ParseError("UNSUPPORTED_FORMAT", "the bytes are neither a format Lectern reads nor UTF-8 text");
+    throw new ParseError("UNSUPPORTED_FORMAT", "the bytes are neither a format Loquitur reads nor UTF-8 text");
   }
   try {
     return await parseAs(identified, input, deps);

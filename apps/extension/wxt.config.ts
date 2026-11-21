@@ -14,7 +14,7 @@ import { defineConfig } from "wxt";
 export default defineConfig({
   modules: ["@wxt-dev/module-react"],
   manifest: {
-    name: "Lectern",
+    name: "Loquitur",
     description: "Read the page you are on out loud, sentence by sentence, with your own reader.",
     permissions: ["activeTab", "scripting", "storage", "offscreen", "contextMenus"],
     optional_host_permissions: ["http://*/*", "https://*/*"],

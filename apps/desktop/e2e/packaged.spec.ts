@@ -67,8 +67,8 @@ test("the packaged application starts, and its page comes out of the archive", a
 
     // F§10.3: the window is the app's own page, loaded from disk — and inside the archive, so the page really
     // did ship inside the package.
-    expect(await window.title()).toBe("Lectern");
-    expect(await app.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows()[0]?.getTitle())).toBe("Lectern");
+    expect(await window.title()).toBe("Loquitur");
+    expect(await app.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows()[0]?.getTitle())).toBe("Loquitur");
     expect(window.url()).toContain("app.asar");
 
     // F§10.3's bridge, on the platform this package was built for.

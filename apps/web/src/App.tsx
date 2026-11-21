@@ -58,7 +58,7 @@ export function App(): ReactElement {
   return (
     <div className="lectern-shell">
       <header className="lectern-shell__bar">
-        <p className="lectern-shell__wordmark">Lectern</p>
+        <p className="lectern-shell__wordmark">Loquitur</p>
         <nav className="lectern-shell__nav" aria-label="Primary">
           {routes
             .filter((candidate) => !candidate.pattern.includes(":"))

@@ -54,7 +54,7 @@ export const SELECTION_CHAR_LIMIT = 100_000;
 export const SELECTION_TITLE_CHARS = 60;
 
 /** The notification a capture that failed is reported with. A trigger has no page to render an error into. */
-export const REFUSAL_TITLE = "Lectern could not read the selection";
+export const REFUSAL_TITLE = "Loquitur could not read the selection";
 
 /** What the handler is built from: the four surfaces it uses, and where it learns which platform it is on. */
 export interface ReadSelectionSurfaces {

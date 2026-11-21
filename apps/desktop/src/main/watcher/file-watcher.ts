@@ -50,7 +50,7 @@ import { fileKey, isImportable, mimeForExtension, shouldProcess } from "./watch-
 export const INBOX_FOLDER = "Inbox";
 
 /** Where the shell's own folder sits under the operator's home (F§10.3's `~/Lectern/Inbox`). */
-export const DEFAULT_WATCH_FOLDER_PARTS = ["Lectern", "Inbox"] as const;
+export const DEFAULT_WATCH_FOLDER_PARTS = ["Loquitur", "Inbox"] as const;
 
 /** How far below a watched folder the shell looks: the contract's three levels. */
 export const WATCH_DEPTH = 3;

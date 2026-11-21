@@ -180,7 +180,7 @@ export default function ScanScreen() {
     <ScrollView style={styles.page} contentContainerStyle={styles.content}>
       <Text style={styles.heading}>Scan a document</Text>
       <Text style={styles.hint}>
-        Photograph the pages in order. Lectern reads them on this phone — nothing is uploaded, and no photograph is kept once the document
+        Photograph the pages in order. Loquitur reads them on this phone — nothing is uploaded, and no photograph is kept once the document
         is saved.
       </Text>
 

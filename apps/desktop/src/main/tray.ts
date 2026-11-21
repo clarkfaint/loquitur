@@ -64,7 +64,7 @@ export function trayMenuTemplate(state: TrayState, actions: TrayActions): MenuIt
     { label: state.playing ? "Pause" : "Play", click: () => actions.togglePlay() },
     { type: "separator" },
     { label: "Next sentence", click: () => actions.nextSentence() },
-    { label: "Show Lectern", click: () => actions.showMain() },
+    { label: "Show Loquitur", click: () => actions.showMain() },
     { label: state.miniVisible ? "Hide mini-player" : "Show mini-player", click: () => actions.toggleMini() },
     { type: "separator" },
     { label: "Quit", click: () => actions.quit() },
@@ -74,7 +74,7 @@ export function trayMenuTemplate(state: TrayState, actions: TrayActions): MenuIt
 /** `createTray(options)` — the tray icon and its menu, up and answerable. */
 export function createTray(options: { icon: NativeImage; actions: TrayActions; state: TrayState }): ShellTray {
   const tray = new Tray(options.icon);
-  tray.setToolTip("Lectern");
+  tray.setToolTip("Loquitur");
   let current = options.state;
   const apply = (state: TrayState): void => {
     tray.setContextMenu(Menu.buildFromTemplate(trayMenuTemplate(state, options.actions)));

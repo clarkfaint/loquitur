@@ -38,7 +38,7 @@ const ORDINARY_BYTES = 1024 * 1024;
 describe("isImportable", () => {
   it("takes each of the six extensions F§10.3 names", () => {
     for (const extension of IMPORTABLE_EXTENSIONS) {
-      expect(isImportable(`/home/reader/Lectern/Inbox/report.${extension}`, ORDINARY_BYTES), extension).toBe(true);
+      expect(isImportable(`/home/reader/Loquitur/Inbox/report.${extension}`, ORDINARY_BYTES), extension).toBe(true);
     }
   });
 
